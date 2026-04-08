@@ -1,0 +1,21 @@
+{
+  "narrative_summary": "The engine compared expected and actual outcomes, then mapped the biggest deltas to recurring audience, creative, and platform signals. Positive metric movement is treated as a repeatable pattern candidate, while cost inflation or missing revenue is flagged for follow-up.",
+  "key_learnings": [
+    "CTR beat forecast by 75.0%, indicating stronger message-market fit than planned.",
+    "18-25 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+    "18-30 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+    "Image creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+    "Video creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns."
+  ],
+  "recommendations": [
+    "Expand tests around `audience:18-25` and preserve the audience framing.",
+    "Expand tests around `audience:18-30` and preserve the audience framing.",
+    "Increase creative production for `creative_type:image` variants.",
+    "Increase creative production for `creative_type:video` variants.",
+    "Tighten budget guardrails and require evidence before scaling this pattern."
+  ],
+  "anomalies": [
+    "cmp_001_meta_genz_video_launch is overspending relative to history, with CPA at 23.21 on 3900.00 spend while only converting at 4.0%."
+  ],
+  "source": "deterministic"
+}

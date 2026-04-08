@@ -1,0 +1,129 @@
+{
+  "generated_at": "2026-03-29T12:47:00.806458Z",
+  "scoring_weights": {
+    "conversion_weight": 1.0,
+    "ctr_weight": 1000.0,
+    "cpa_weight": 1.0
+  },
+  "signal_weights": {
+    "audience:18-24": 1.059,
+    "audience:18-25": 1.0227,
+    "audience:18-30": 0.8523,
+    "audience:21-28": 1.1999,
+    "audience:26-34": 0.9388,
+    "audience:30-45": 0.9197,
+    "audience:30-50": 0.88,
+    "campaign:cmp_001_meta_genz_video_launch": 0.95,
+    "campaign:cmp_002_google_search_saas_demo": 0.6514,
+    "campaign:cmp_005_linkedin_exec_report": 0.7942,
+    "creative_type:carousel": 0.9388,
+    "creative_type:document": 0.88,
+    "creative_type:image": 0.9287,
+    "creative_type:reel": 1.1012,
+    "creative_type:search_text": 0.9197,
+    "creative_type:ugc_video": 1.059,
+    "creative_type:video": 1.0227,
+    "objective:demo_bookings": 0.9197,
+    "objective:lead_generation": 1.1264,
+    "objective:trial_signups": 1.0683,
+    "objective:whitepaper_downloads": 0.88,
+    "platform:google_ads": 0.9739,
+    "platform:linkedin": 0.88,
+    "platform:meta": 0.9739,
+    "platform:tiktok": 1.059,
+    "platform_trend:meta": 1.1999
+  },
+  "updated_signals": [
+    {
+      "signal_key": "audience:18-24",
+      "weight": 1.059,
+      "successes": 3,
+      "failures": 2,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "audience:18-25",
+      "weight": 1.0227,
+      "successes": 4,
+      "failures": 3,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "audience:21-28",
+      "weight": 1.1999,
+      "successes": 2,
+      "failures": 0,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "campaign:cmp_002_google_search_saas_demo",
+      "weight": 0.6514,
+      "successes": 3,
+      "failures": 3,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "campaign:cmp_005_linkedin_exec_report",
+      "weight": 0.7942,
+      "successes": 2,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "creative_type:reel",
+      "weight": 1.1012,
+      "successes": 1,
+      "failures": 0,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "creative_type:ugc_video",
+      "weight": 1.059,
+      "successes": 3,
+      "failures": 2,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "creative_type:video",
+      "weight": 1.0227,
+      "successes": 4,
+      "failures": 3,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "objective:lead_generation",
+      "weight": 1.1264,
+      "successes": 3,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "platform:google_ads",
+      "weight": 0.9739,
+      "successes": 3,
+      "failures": 3,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "platform:meta",
+      "weight": 0.9739,
+      "successes": 4,
+      "failures": 3,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "platform:tiktok",
+      "weight": 1.059,
+      "successes": 3,
+      "failures": 2,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    },
+    {
+      "signal_key": "platform_trend:meta",
+      "weight": 1.1999,
+      "successes": 2,
+      "failures": 0,
+      "last_updated": "2026-03-29T12:47:00.806458Z"
+    }
+  ]
+}

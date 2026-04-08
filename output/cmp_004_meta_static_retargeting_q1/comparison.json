@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_004_meta_static_retargeting_q1",
+  "generated_at": "2026-03-29T12:46:59.067441Z",
+  "expected_rates": {
+    "ctr": 0.025,
+    "cvr": 0.06,
+    "cpa": 25.0,
+    "roas": 5.0
+  },
+  "actual_rates": {
+    "ctr": 0.021795,
+    "cvr": 0.054118,
+    "cpa": 34.782609,
+    "roas": 3.78125
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.025,
+      "actual": 0.021795,
+      "pct_diff": -12.82,
+      "favorable": false
+    },
+    "cvr_diff": {
+      "expected": 0.06,
+      "actual": 0.054118,
+      "pct_diff": -9.8033,
+      "favorable": false
+    },
+    "cpa_diff": {
+      "expected": 25.0,
+      "actual": 34.782609,
+      "pct_diff": 39.1304,
+      "favorable": false
+    },
+    "roas_diff": {
+      "expected": 5.0,
+      "actual": 3.78125,
+      "pct_diff": -24.375,
+      "favorable": false
+    }
+  },
+  "performance_score": 79.0124,
+  "summary": [
+    "CTR moved -12.82% versus forecast.",
+    "CVR moved -9.80% versus forecast.",
+    "CPA worsened by 39.13% versus forecast."
+  ]
+}

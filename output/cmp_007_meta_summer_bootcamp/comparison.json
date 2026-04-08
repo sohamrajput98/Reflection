@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_007_meta_summer_bootcamp",
+  "generated_at": "2026-03-29T12:47:00.390860Z",
+  "expected_rates": {
+    "ctr": 0.02,
+    "cvr": 0.04,
+    "cpa": 50.0,
+    "roas": 2.0
+  },
+  "actual_rates": {
+    "ctr": 0.035,
+    "cvr": 0.041837,
+    "cpa": 19.268293,
+    "roas": 5.696203
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.02,
+      "actual": 0.035,
+      "pct_diff": 75.0,
+      "favorable": true
+    },
+    "cvr_diff": {
+      "expected": 0.04,
+      "actual": 0.041837,
+      "pct_diff": 4.5925,
+      "favorable": true
+    },
+    "cpa_diff": {
+      "expected": 50.0,
+      "actual": 19.268293,
+      "pct_diff": -61.4634,
+      "favorable": true
+    },
+    "roas_diff": {
+      "expected": 2.0,
+      "actual": 5.696203,
+      "pct_diff": 184.8101,
+      "favorable": true
+    }
+  },
+  "performance_score": 220.7317,
+  "summary": [
+    "CTR moved 75.00% versus forecast.",
+    "CVR moved 4.59% versus forecast.",
+    "CPA improved by 61.46% versus forecast."
+  ]
+}

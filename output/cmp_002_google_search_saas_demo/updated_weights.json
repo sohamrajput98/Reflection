@@ -1,0 +1,94 @@
+{
+  "generated_at": "2026-03-29T12:46:58.560874Z",
+  "scoring_weights": {
+    "conversion_weight": 1.0,
+    "ctr_weight": 1000.0,
+    "cpa_weight": 1.0
+  },
+  "signal_weights": {
+    "audience:18-25": 0.9657,
+    "audience:18-30": 0.9657,
+    "audience:30-45": 0.9197,
+    "campaign:cmp_001_meta_genz_video_launch": 0.95,
+    "campaign:cmp_002_google_search_saas_demo": 0.9197,
+    "creative_type:image": 0.9657,
+    "creative_type:search_text": 0.9197,
+    "creative_type:video": 0.9657,
+    "objective:demo_bookings": 0.9197,
+    "objective:lead_generation": 1.0,
+    "platform:google_ads": 0.9197,
+    "platform:meta": 0.9197
+  },
+  "updated_signals": [
+    {
+      "signal_key": "audience:18-25",
+      "weight": 0.9657,
+      "successes": 1,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "audience:18-30",
+      "weight": 0.9657,
+      "successes": 1,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "audience:30-45",
+      "weight": 0.9197,
+      "successes": 0,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "campaign:cmp_002_google_search_saas_demo",
+      "weight": 0.9197,
+      "successes": 0,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "creative_type:image",
+      "weight": 0.9657,
+      "successes": 1,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "creative_type:search_text",
+      "weight": 0.9197,
+      "successes": 0,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "creative_type:video",
+      "weight": 0.9657,
+      "successes": 1,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "objective:demo_bookings",
+      "weight": 0.9197,
+      "successes": 0,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "platform:google_ads",
+      "weight": 0.9197,
+      "successes": 0,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    },
+    {
+      "signal_key": "platform:meta",
+      "weight": 0.9197,
+      "successes": 1,
+      "failures": 1,
+      "last_updated": "2026-03-29T12:46:58.560874Z"
+    }
+  ]
+}

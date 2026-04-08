@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_002_google_search_saas_demo",
+  "generated_at": "2026-03-29T12:46:58.138662Z",
+  "expected_rates": {
+    "ctr": 0.03,
+    "cvr": 0.051852,
+    "cpa": 42.857143,
+    "roas": 3.5
+  },
+  "actual_rates": {
+    "ctr": 0.026136,
+    "cvr": 0.041739,
+    "cpa": 67.708333,
+    "roas": 2.584615
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.03,
+      "actual": 0.026136,
+      "pct_diff": -12.88,
+      "favorable": false
+    },
+    "cvr_diff": {
+      "expected": 0.051852,
+      "actual": 0.041739,
+      "pct_diff": -19.5036,
+      "favorable": false
+    },
+    "cpa_diff": {
+      "expected": 42.857143,
+      "actual": 67.708333,
+      "pct_diff": 57.9861,
+      "favorable": false
+    },
+    "roas_diff": {
+      "expected": 3.5,
+      "actual": 2.584615,
+      "pct_diff": -26.1539,
+      "favorable": false
+    }
+  },
+  "performance_score": 54.4277,
+  "summary": [
+    "CTR moved -12.88% versus forecast.",
+    "CVR moved -19.50% versus forecast.",
+    "CPA worsened by 57.99% versus forecast."
+  ]
+}

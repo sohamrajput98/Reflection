@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_001_meta_genz_video_launch",
+  "generated_at": "2026-03-29T12:46:57.528067Z",
+  "expected_rates": {
+    "ctr": 0.02,
+    "cvr": 0.04,
+    "cpa": 50.0,
+    "roas": 1.8
+  },
+  "actual_rates": {
+    "ctr": 0.035,
+    "cvr": 0.04,
+    "cpa": 23.214286,
+    "roas": 4.307692
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.02,
+      "actual": 0.035,
+      "pct_diff": 75.0,
+      "favorable": true
+    },
+    "cvr_diff": {
+      "expected": 0.04,
+      "actual": 0.04,
+      "pct_diff": 0.0,
+      "favorable": true
+    },
+    "cpa_diff": {
+      "expected": 50.0,
+      "actual": 23.214286,
+      "pct_diff": -53.5714,
+      "favorable": true
+    },
+    "roas_diff": {
+      "expected": 1.8,
+      "actual": 4.307692,
+      "pct_diff": 139.3162,
+      "favorable": true
+    }
+  },
+  "performance_score": 179.7857,
+  "summary": [
+    "CTR moved 75.00% versus forecast.",
+    "CVR moved 0.00% versus forecast.",
+    "CPA improved by 53.57% versus forecast."
+  ]
+}

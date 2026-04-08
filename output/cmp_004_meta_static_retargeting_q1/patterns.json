@@ -1,0 +1,220 @@
+{
+  "campaign_id": "cmp_004_meta_static_retargeting_q1",
+  "generated_at": "2026-03-29T12:46:59.234899Z",
+  "pattern_report": [
+    "18-24 audiences drive a 65% stronger performance score versus baseline, with 21% lower CVR and 35% lower CPA across 1 campaigns.",
+    "18-25 audiences drive a 50% stronger performance score versus baseline, with 13% lower CVR and 37% lower CPA across 2 campaigns.",
+    "18-30 audiences drive a 35% stronger performance score versus baseline, with 5% lower CVR and 38% lower CPA across 1 campaigns.",
+    "Ugc_Video creatives deliver a 65% stronger performance score, 21% lower CVR, and 35% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+    "Video creatives deliver a 50% stronger performance score, 13% lower CVR, and 37% lower CPA while sustaining 3.5% CTR across 2 campaigns.",
+    "Image creatives deliver a 3% weaker performance score, 11% higher CVR, and 23% lower CPA while sustaining 2.8% CTR across 2 campaigns.",
+    "cmp_002_google_search_saas_demo is overspending relative to history, with CPA at 67.71 on 6500.00 spend while only converting at 4.2%.",
+    "TikTok campaigns average 3.5% CTR and 3.3% CVR, driving a 65% stronger score than the portfolio average.",
+    "Meta campaigns average 2.8% CTR and 4.7% CVR, driving a 3% weaker score than the portfolio average.",
+    "Google Ads campaigns average 2.6% CTR and 4.2% CVR, driving a 59% weaker score than the portfolio average.",
+    "The scale winners cluster contains 1 campaigns with 3.3% average CVR and 24.29 CPA.",
+    "The mixed cluster contains 2 campaigns with 4.7% average CVR and 29.00 CPA.",
+    "The at risk cluster contains 1 campaigns with 4.2% average CVR and 67.71 CPA."
+  ],
+  "winning_audiences": [
+    {
+      "finding_id": "audience:18-24",
+      "category": "winning_audiences",
+      "title": "18-24 audiences outperform baseline",
+      "description": "18-24 audiences drive a 65% stronger performance score versus baseline, with 21% lower CVR and 35% lower CPA across 1 campaigns.",
+      "signal_key": "audience:18-24",
+      "impact_score": 33.36,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.0333,
+        "avg_cpa": 24.29,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "audience:18-25",
+      "category": "winning_audiences",
+      "title": "18-25 audiences outperform baseline",
+      "description": "18-25 audiences drive a 50% stronger performance score versus baseline, with 13% lower CVR and 37% lower CPA across 2 campaigns.",
+      "signal_key": "audience:18-25",
+      "impact_score": 28.35,
+      "evidence_count": 2,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.0367,
+        "avg_cpa": 23.75,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "audience:18-30",
+      "category": "winning_audiences",
+      "title": "18-30 audiences outperform baseline",
+      "description": "18-30 audiences drive a 35% stronger performance score versus baseline, with 5% lower CVR and 38% lower CPA across 1 campaigns.",
+      "signal_key": "audience:18-30",
+      "impact_score": 23.33,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    }
+  ],
+  "high_performing_creatives": [
+    {
+      "finding_id": "creative:ugc_video",
+      "category": "high_performing_creatives",
+      "title": "Ugc_Video creatives lead on conversion efficiency",
+      "description": "Ugc_Video creatives deliver a 65% stronger performance score, 21% lower CVR, and 35% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+      "signal_key": "creative_type:ugc_video",
+      "impact_score": 33.36,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.0333,
+        "avg_cpa": 24.29,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "creative:video",
+      "category": "high_performing_creatives",
+      "title": "Video creatives lead on conversion efficiency",
+      "description": "Video creatives deliver a 50% stronger performance score, 13% lower CVR, and 37% lower CPA while sustaining 3.5% CTR across 2 campaigns.",
+      "signal_key": "creative_type:video",
+      "impact_score": 28.35,
+      "evidence_count": 2,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.0367,
+        "avg_cpa": 23.75,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "creative:image",
+      "category": "high_performing_creatives",
+      "title": "Image creatives lead on conversion efficiency",
+      "description": "Image creatives deliver a 3% weaker performance score, 11% higher CVR, and 23% lower CPA while sustaining 2.8% CTR across 2 campaigns.",
+      "signal_key": "creative_type:image",
+      "impact_score": 6.38,
+      "evidence_count": 2,
+      "metadata": {
+        "avg_ctr": 0.0284,
+        "avg_cvr": 0.0471,
+        "avg_cpa": 29.0,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    }
+  ],
+  "budget_inefficiencies": [
+    {
+      "finding_id": "budget:cmp_002_google_search_saas_demo",
+      "category": "budget_inefficiencies",
+      "title": "cmp_002_google_search_saas_demo shows budget inefficiency",
+      "description": "cmp_002_google_search_saas_demo is overspending relative to history, with CPA at 67.71 on 6500.00 spend while only converting at 4.2%.",
+      "signal_key": "campaign:cmp_002_google_search_saas_demo",
+      "impact_score": -67.71,
+      "evidence_count": 1,
+      "metadata": {
+        "platform": "Google Ads",
+        "objective": "Demo Bookings",
+        "spend": 6500.0,
+        "cpa": 67.71
+      }
+    }
+  ],
+  "platform_trends": [
+    {
+      "finding_id": "platform:tiktok",
+      "category": "platform_trends",
+      "title": "TikTok trend snapshot",
+      "description": "TikTok campaigns average 3.5% CTR and 3.3% CVR, driving a 65% stronger score than the portfolio average.",
+      "signal_key": "platform:tiktok",
+      "impact_score": 65.35,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.0333,
+        "avg_cpa": 24.29
+      }
+    },
+    {
+      "finding_id": "platform:meta",
+      "category": "platform_trends",
+      "title": "Meta trend snapshot",
+      "description": "Meta campaigns average 2.8% CTR and 4.7% CVR, driving a 3% weaker score than the portfolio average.",
+      "signal_key": "platform:meta",
+      "impact_score": -3.06,
+      "evidence_count": 2,
+      "metadata": {
+        "avg_ctr": 0.0284,
+        "avg_cvr": 0.0471,
+        "avg_cpa": 29.0
+      }
+    },
+    {
+      "finding_id": "platform:google_ads",
+      "category": "platform_trends",
+      "title": "Google Ads trend snapshot",
+      "description": "Google Ads campaigns average 2.6% CTR and 4.2% CVR, driving a 59% weaker score than the portfolio average.",
+      "signal_key": "platform:google_ads",
+      "impact_score": -59.23,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.0261,
+        "avg_cvr": 0.0417,
+        "avg_cpa": 67.71
+      }
+    }
+  ],
+  "clusters": [
+    {
+      "finding_id": "cluster:scale_winners",
+      "category": "clusters",
+      "title": "Scale Winners cluster",
+      "description": "The scale winners cluster contains 1 campaigns with 3.3% average CVR and 24.29 CPA.",
+      "signal_key": "cluster:scale_winners",
+      "impact_score": 220.71,
+      "evidence_count": 1,
+      "metadata": {
+        "cluster_method": "heuristic_quantile_segmentation"
+      }
+    },
+    {
+      "finding_id": "cluster:mixed",
+      "category": "clusters",
+      "title": "Mixed cluster",
+      "description": "The mixed cluster contains 2 campaigns with 4.7% average CVR and 29.00 CPA.",
+      "signal_key": "cluster:mixed",
+      "impact_score": 129.4,
+      "evidence_count": 2,
+      "metadata": {
+        "cluster_method": "heuristic_quantile_segmentation"
+      }
+    },
+    {
+      "finding_id": "cluster:at_risk",
+      "category": "clusters",
+      "title": "At Risk cluster",
+      "description": "The at risk cluster contains 1 campaigns with 4.2% average CVR and 67.71 CPA.",
+      "signal_key": "cluster:at_risk",
+      "impact_score": 54.43,
+      "evidence_count": 1,
+      "metadata": {
+        "cluster_method": "heuristic_quantile_segmentation"
+      }
+    }
+  ],
+  "auto_tags": [
+    "audience:26-34",
+    "creative_type:carousel",
+    "creative_type:image",
+    "objective:lead_generation",
+    "performance_band:mid_band",
+    "platform:meta"
+  ]
+}

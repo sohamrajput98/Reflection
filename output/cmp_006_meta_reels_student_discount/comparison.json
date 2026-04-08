@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_006_meta_reels_student_discount",
+  "generated_at": "2026-03-29T12:46:59.894018Z",
+  "expected_rates": {
+    "ctr": 0.022727,
+    "cvr": 0.036,
+    "cpa": 46.666667,
+    "roas": 2.142857
+  },
+  "actual_rates": {
+    "ctr": 0.035,
+    "cvr": 0.038462,
+    "cpa": 23.142857,
+    "roas": 4.320988
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.022727,
+      "actual": 0.035,
+      "pct_diff": 54.0018,
+      "favorable": true
+    },
+    "cvr_diff": {
+      "expected": 0.036,
+      "actual": 0.038462,
+      "pct_diff": 6.8389,
+      "favorable": true
+    },
+    "cpa_diff": {
+      "expected": 46.666667,
+      "actual": 23.142857,
+      "pct_diff": -50.4082,
+      "favorable": true
+    },
+    "roas_diff": {
+      "expected": 2.142857,
+      "actual": 4.320988,
+      "pct_diff": 101.6461,
+      "favorable": true
+    }
+  },
+  "performance_score": 186.8571,
+  "summary": [
+    "CTR moved 54.00% versus forecast.",
+    "CVR moved 6.84% versus forecast.",
+    "CPA improved by 50.41% versus forecast."
+  ]
+}

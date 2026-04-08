@@ -1,0 +1,133 @@
+{
+  "campaign_id": "cmp_001_meta_genz_video_launch",
+  "generated_at": "2026-03-29T12:46:57.825951Z",
+  "pattern_report": [
+    "18-25 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+    "18-30 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+    "Image creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+    "Video creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+    "cmp_001_meta_genz_video_launch is overspending relative to history, with CPA at 23.21 on 3900.00 spend while only converting at 4.0%.",
+    "Meta campaigns average 3.5% CTR and 4.0% CVR, driving a 0% stronger score than the portfolio average.",
+    "The scale winners cluster contains 1 campaigns with 4.0% average CVR and 23.21 CPA."
+  ],
+  "winning_audiences": [
+    {
+      "finding_id": "audience:18-25",
+      "category": "winning_audiences",
+      "title": "18-25 audiences outperform baseline",
+      "description": "18-25 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+      "signal_key": "audience:18-25",
+      "impact_score": 0.0,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "audience:18-30",
+      "category": "winning_audiences",
+      "title": "18-30 audiences outperform baseline",
+      "description": "18-30 audiences drive a 0% stronger performance score versus baseline, with 0% higher CVR and 0% lower CPA across 1 campaigns.",
+      "signal_key": "audience:18-30",
+      "impact_score": 0.0,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    }
+  ],
+  "high_performing_creatives": [
+    {
+      "finding_id": "creative:image",
+      "category": "high_performing_creatives",
+      "title": "Image creatives lead on conversion efficiency",
+      "description": "Image creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+      "signal_key": "creative_type:image",
+      "impact_score": 0.0,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    },
+    {
+      "finding_id": "creative:video",
+      "category": "high_performing_creatives",
+      "title": "Video creatives lead on conversion efficiency",
+      "description": "Video creatives deliver a 0% stronger performance score, 0% higher CVR, and 0% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+      "signal_key": "creative_type:video",
+      "impact_score": 0.0,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21,
+        "attribution_mode": "campaign_level_heuristic"
+      }
+    }
+  ],
+  "budget_inefficiencies": [
+    {
+      "finding_id": "budget:cmp_001_meta_genz_video_launch",
+      "category": "budget_inefficiencies",
+      "title": "cmp_001_meta_genz_video_launch shows budget inefficiency",
+      "description": "cmp_001_meta_genz_video_launch is overspending relative to history, with CPA at 23.21 on 3900.00 spend while only converting at 4.0%.",
+      "signal_key": "campaign:cmp_001_meta_genz_video_launch",
+      "impact_score": -23.21,
+      "evidence_count": 1,
+      "metadata": {
+        "platform": "Meta",
+        "objective": "Lead Generation",
+        "spend": 3900.0,
+        "cpa": 23.21
+      }
+    }
+  ],
+  "platform_trends": [
+    {
+      "finding_id": "platform:meta",
+      "category": "platform_trends",
+      "title": "Meta trend snapshot",
+      "description": "Meta campaigns average 3.5% CTR and 4.0% CVR, driving a 0% stronger score than the portfolio average.",
+      "signal_key": "platform:meta",
+      "impact_score": 0.0,
+      "evidence_count": 1,
+      "metadata": {
+        "avg_ctr": 0.035,
+        "avg_cvr": 0.04,
+        "avg_cpa": 23.21
+      }
+    }
+  ],
+  "clusters": [
+    {
+      "finding_id": "cluster:scale_winners",
+      "category": "clusters",
+      "title": "Scale Winners cluster",
+      "description": "The scale winners cluster contains 1 campaigns with 4.0% average CVR and 23.21 CPA.",
+      "signal_key": "cluster:scale_winners",
+      "impact_score": 179.79,
+      "evidence_count": 1,
+      "metadata": {
+        "cluster_method": "heuristic_quantile_segmentation"
+      }
+    }
+  ],
+  "auto_tags": [
+    "audience:18-25",
+    "audience:18-30",
+    "creative_type:image",
+    "creative_type:video",
+    "objective:lead_generation",
+    "performance_band:high_performer",
+    "platform:meta"
+  ]
+}

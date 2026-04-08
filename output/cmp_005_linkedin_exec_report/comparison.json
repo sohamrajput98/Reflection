@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_005_linkedin_exec_report",
+  "generated_at": "2026-03-29T12:46:59.519851Z",
+  "expected_rates": {
+    "ctr": 0.018,
+    "cvr": 0.088889,
+    "cpa": 87.5,
+    "roas": 2.0
+  },
+  "actual_rates": {
+    "ctr": 0.014615,
+    "cvr": 0.094737,
+    "cpa": 105.555556,
+    "roas": 1.973684
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.018,
+      "actual": 0.014615,
+      "pct_diff": -18.8056,
+      "favorable": false
+    },
+    "cvr_diff": {
+      "expected": 0.088889,
+      "actual": 0.094737,
+      "pct_diff": 6.579,
+      "favorable": true
+    },
+    "cpa_diff": {
+      "expected": 87.5,
+      "actual": 105.555556,
+      "pct_diff": 20.6349,
+      "favorable": false
+    },
+    "roas_diff": {
+      "expected": 2.0,
+      "actual": 1.973684,
+      "pct_diff": -1.3158,
+      "favorable": false
+    }
+  },
+  "performance_score": -18.9406,
+  "summary": [
+    "CTR moved -18.81% versus forecast.",
+    "CVR moved 6.58% versus forecast.",
+    "CPA worsened by 20.63% versus forecast."
+  ]
+}

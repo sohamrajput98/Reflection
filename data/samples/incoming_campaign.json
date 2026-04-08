@@ -1,0 +1,52 @@
+{
+  "campaign_id": "cmp_007_meta_summer_bootcamp",
+  "platform": "Meta",
+  "objective": "Lead Generation",
+  "expected_metrics": {
+    "impressions": 95000,
+    "clicks": 1900,
+    "conversions": 76,
+    "spend": 3800.0,
+    "revenue": 7600.0
+  },
+  "actual_metrics": {
+    "impressions": 140000,
+    "clicks": 4900,
+    "conversions": 205,
+    "spend": 3950.0,
+    "revenue": 22500.0
+  },
+  "audiences": [
+    {
+      "name": "Students 18-25",
+      "attributes": {
+        "age_range": "18-25",
+        "city_tier": "Tier-1",
+        "segment": "students"
+      }
+    },
+    {
+      "name": "Aspiring Creators 18-24",
+      "attributes": {
+        "age_range": "18-24",
+        "city_tier": "Tier-2",
+        "segment": "creators"
+      }
+    }
+  ],
+  "creatives": [
+    {
+      "id": "crt_010",
+      "type": "video",
+      "headline": "From scroll to signup in 15 seconds",
+      "primary_text": "Short-form bootcamp creative built around creator before-and-after proof."
+    },
+    {
+      "id": "crt_011",
+      "type": "reel",
+      "headline": "What 205 signups taught us about hooks",
+      "primary_text": "Three top-performing opening hooks from Marko campaigns."
+    }
+  ],
+  "timestamp": "2026-03-29T10:00:00+00:00"
+}

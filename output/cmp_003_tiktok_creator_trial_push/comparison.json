@@ -1,0 +1,48 @@
+{
+  "campaign_id": "cmp_003_tiktok_creator_trial_push",
+  "generated_at": "2026-03-29T12:46:58.638600Z",
+  "expected_rates": {
+    "ctr": 0.024,
+    "cvr": 0.030556,
+    "cpa": 45.454545,
+    "roas": 2.4
+  },
+  "actual_rates": {
+    "ctr": 0.035,
+    "cvr": 0.033333,
+    "cpa": 24.285714,
+    "roas": 4.705882
+  },
+  "deltas": {
+    "ctr_diff": {
+      "expected": 0.024,
+      "actual": 0.035,
+      "pct_diff": 45.8333,
+      "favorable": true
+    },
+    "cvr_diff": {
+      "expected": 0.030556,
+      "actual": 0.033333,
+      "pct_diff": 9.0882,
+      "favorable": true
+    },
+    "cpa_diff": {
+      "expected": 45.454545,
+      "actual": 24.285714,
+      "pct_diff": -46.5714,
+      "favorable": true
+    },
+    "roas_diff": {
+      "expected": 2.4,
+      "actual": 4.705882,
+      "pct_diff": 96.0784,
+      "favorable": true
+    }
+  },
+  "performance_score": 220.7143,
+  "summary": [
+    "CTR moved 45.83% versus forecast.",
+    "CVR moved 9.09% versus forecast.",
+    "CPA improved by 46.57% versus forecast."
+  ]
+}

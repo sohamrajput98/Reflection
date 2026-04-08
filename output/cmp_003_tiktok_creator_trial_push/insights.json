@@ -1,0 +1,23 @@
+{
+  "narrative_summary": "The engine compared expected and actual outcomes, then mapped the biggest deltas to recurring audience, creative, and platform signals. Positive metric movement is treated as a repeatable pattern candidate, while cost inflation or missing revenue is flagged for follow-up.",
+  "key_learnings": [
+    "CTR beat forecast by 45.8%, indicating stronger message-market fit than planned.",
+    "CVR improved by 9.1%, suggesting the landing journey and offer matched traffic quality.",
+    "18-24 audiences drive a 46% stronger performance score versus baseline, with 13% lower CVR and 37% lower CPA across 1 campaigns.",
+    "18-25 audiences drive a 32% stronger performance score versus baseline, with 4% lower CVR and 38% lower CPA across 2 campaigns.",
+    "Ugc_Video creatives deliver a 46% stronger performance score, 13% lower CVR, and 37% lower CPA while sustaining 3.5% CTR across 1 campaigns.",
+    "Video creatives deliver a 32% stronger performance score, 4% lower CVR, and 38% lower CPA while sustaining 3.5% CTR across 2 campaigns."
+  ],
+  "recommendations": [
+    "Expand tests around `audience:18-24` and preserve the audience framing.",
+    "Expand tests around `audience:18-25` and preserve the audience framing.",
+    "Increase creative production for `creative_type:ugc_video` variants.",
+    "Increase creative production for `creative_type:video` variants.",
+    "Tighten budget guardrails and require evidence before scaling this pattern.",
+    "Reuse the playbook from `cmp_001_meta_genz_video_launch` because it is the nearest semantic match in memory."
+  ],
+  "anomalies": [
+    "cmp_002_google_search_saas_demo is overspending relative to history, with CPA at 67.71 on 6500.00 spend while only converting at 4.2%."
+  ],
+  "source": "deterministic"
+}
