@@ -1,0 +1,63 @@
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass
+from pathlib import Path
+
+
+@dataclass(frozen=True)
+class Settings:
+    app_name: str
+    base_dir: Path
+    database_path: Path
+    output_dir: Path
+    vector_backend: str
+    vector_path: Path
+    vector_fallback_path: Path
+    weights_path: Path
+    insights_model: str
+    embedding_model: str
+    openai_api_key: str | None
+    insights_limit: int
+    agent_id: str
+    supabase_url: str
+    supabase_key: str
+    
+    @classmethod
+    def load(cls) -> "Settings":
+        base_dir = Path(__file__).resolve().parents[2]
+        database_path = base_dir / os.getenv("MARKO_DATABASE_PATH", "data/reflection.db")
+        output_dir = base_dir / os.getenv("MARKO_OUTPUT_DIR", "output")
+        vector_path = base_dir / os.getenv("MARKO_VECTOR_PATH", "data/chroma")
+        vector_fallback_path = base_dir / os.getenv(
+            "MARKO_VECTOR_FALLBACK_PATH",
+            "data/vector_store.json",
+        )
+        weights_path = base_dir / os.getenv("MARKO_WEIGHTS_PATH", "data/weights.json")
+
+        agent_id = os.getenv("agent_id", "default_agent")
+
+        return cls(
+            app_name="Reflection & Learning Engine",
+            base_dir=base_dir,
+            database_path=database_path,
+            output_dir=output_dir,
+            vector_backend=os.getenv("MARKO_VECTOR_BACKEND", "chroma").lower(),
+            vector_path=vector_path,
+            vector_fallback_path=vector_fallback_path,
+            weights_path=weights_path,
+            insights_model=os.getenv("MARKO_INSIGHTS_MODEL", "gpt-5"),
+            embedding_model=os.getenv("MARKO_EMBEDDING_MODEL", "text-embedding-3-small"),
+            openai_api_key=os.getenv("OPENAI_API_KEY"),
+            insights_limit=int(os.getenv("MARKO_INSIGHTS_LIMIT", "10")),
+            agent_id=agent_id,
+            supabase_url=os.getenv("SUPABASE_URL"),
+            supabase_key=os.getenv("SUPABASE_KEY"),
+        )
+
+    def ensure_directories(self) -> None:
+        self.database_path.parent.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        self.vector_path.mkdir(parents=True, exist_ok=True)
+        self.vector_fallback_path.parent.mkdir(parents=True, exist_ok=True)
+        self.weights_path.parent.mkdir(parents=True, exist_ok=True)
