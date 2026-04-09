@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
-
+from uuid import UUID
 
 class Metrics(BaseModel):
     impressions: int = Field(ge=0)
