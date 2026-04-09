@@ -4,8 +4,13 @@ gunicorn==25.1.0
 
 supabase==2.0.0
 
+<<<<<<< HEAD
 psycopg2-binary
 
+=======
+psycopg[binary]==3.3.3
+psycopg2-binary
+>>>>>>> 254be04 (fix: add psycopg2 dependency for PostgreSQL support)
 python-dotenv==1.0.0
 
 httpx
