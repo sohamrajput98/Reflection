@@ -20,6 +20,10 @@ app = FastAPI(
 
 app.include_router(router)
 
+@app.get("/")
+def home():
+    return {"status": "running"}
+
 # TEMP DEBUG (remove later)
 print("DB:", os.getenv("DATABASE_URL"))
 print("AGENT:", os.getenv("agent_id"))
