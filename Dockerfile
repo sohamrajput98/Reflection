@@ -20,10 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Create directories BEFORE switching user
-RUN mkdir -p /app/data/chroma /app/output && chmod -R 777 /app
-RUN useradd -m appuser
-USER appuser
+# Create safe temp directory
+RUN mkdir -p /tmp/output
 
 # Expose port (Render expects this)
 EXPOSE 10000
