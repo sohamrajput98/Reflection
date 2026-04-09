@@ -20,10 +20,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Create required directories and fix permissions
-RUN mkdir -p /app/data/chroma && chmod -R 777 /app/data
-
-# Create non-root user (good practice)
+# Create directories BEFORE switching user
+RUN mkdir -p /app/data/chroma /app/output && chmod -R 777 /app
 RUN useradd -m appuser
 USER appuser
 
