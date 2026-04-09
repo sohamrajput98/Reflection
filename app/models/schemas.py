@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from typing import Any
-
+from uuid import UUID
 from pydantic import BaseModel, Field, model_validator
-
+from uuid import UUID
 
 class Metrics(BaseModel):
     impressions: int = Field(ge=0)
@@ -146,7 +146,7 @@ class AnalyzeCampaignResponse(BaseModel):
 
 
 class InsightRecord(BaseModel):
-    id: int
+    id: UUID
     campaign_id: str
     kind: str
     content: str
