@@ -25,7 +25,10 @@ class InsightService:
         self.settings = settings
         self._client = None
         if settings.openai_api_key and OpenAI is not None:
-            self._client = OpenAI(api_key=settings.openai_api_key)
+            self._client = OpenAI(
+                api_key=settings.openai_api_key,
+                base_url="https://openrouter.ai/api/v1"
+            )   
 
     def generate_insights(
         self,
@@ -105,7 +108,7 @@ class InsightService:
         comparison_data: ComparisonReport,
         similar_campaigns: Sequence[SemanticSearchResult],
     ) -> InsightExtractionOutput | None:
-        if self._client is None or not hasattr(self._client.responses, "parse"):
+        if self._client is None:
             return None
 
         prompt = (

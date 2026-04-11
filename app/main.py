@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
@@ -18,6 +19,22 @@ app = FastAPI(
     summary="Campaign retrospective system for memory-backed learning loops.",
 )
 
+# ✅ ADD THIS BLOCK (CORS FIX)
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "*"  # fast fix (ok for now)
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# ROUTES
 app.include_router(router)
 
 @app.get("/")

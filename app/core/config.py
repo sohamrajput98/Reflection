@@ -46,8 +46,11 @@ class Settings:
             vector_path=vector_path,
             vector_fallback_path=vector_fallback_path,
             weights_path=weights_path,
-            insights_model=os.getenv("MARKO_INSIGHTS_MODEL", "gpt-5"),
-            embedding_model=os.getenv("MARKO_EMBEDDING_MODEL", "text-embedding-3-small"),
+            insights_model=os.getenv("MARKO_INSIGHTS_MODEL", "openrouter/free"),
+            embedding_model=os.getenv(
+                "MARKO_EMBEDDING_MODEL",
+                "sentence-transformers/all-MiniLM-L6-v2"
+            ),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             insights_limit=int(os.getenv("MARKO_INSIGHTS_LIMIT", "10")),
             agent_id=agent_id,
