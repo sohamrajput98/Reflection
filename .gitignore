@@ -23,3 +23,5 @@ Thumbs.db
 # Project generated
 output/
 data/
+
+node_modules/
