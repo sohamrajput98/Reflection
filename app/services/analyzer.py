@@ -78,7 +78,11 @@ class ReflectionLearningEngine:
         )
 
         weights = self.feedback_engine.update_system_learnings(payload, comparison, pattern_report)
-        output_path = self._persist_outputs(payload.campaign_id, comparison, pattern_report, insights, weights)
+        output_path = (
+            self._persist_outputs(payload.campaign_id, comparison, pattern_report, insights, weights)
+            if self.settings.enable_local_output
+            else None
+        )
 
         return AnalyzeCampaignResponse(
             comparison_report=comparison,
@@ -87,9 +91,9 @@ class ReflectionLearningEngine:
             weights=weights,
             similar_campaigns=similar_campaigns,
             stored_memory=StorageConfirmation(
-                sqlite_saved=False,   # ✅ was True — no SQLite anymore
+                sqlite_saved=False,
                 vector_saved=vector_saved,
-                output_path=str(output_path),
+                output_path=str(output_path) if output_path else "",
             ),
         )
 
@@ -132,15 +136,36 @@ class ReflectionLearningEngine:
         comparison,
         pattern_report,
     ) -> str:
-        audience_names = ", ".join(
-            [
+        # ✅ Sanitize audiences
+        valid_audiences = []
+        for audience in payload.audiences:
+            audience_key = (
                 audience.attributes.get("age_range")
                 or audience.attributes.get("age_band")
                 or audience.name
-                for audience in payload.audiences
-            ]
-        ) or "unknown audience"
-        creative_types = ", ".join(creative.type for creative in payload.creatives) or "unknown creative"
+            )
+
+            if audience_key:
+                cleaned = str(audience_key).strip().lower()
+                if cleaned not in ("string", "unknown", "none", ""):
+                    valid_audiences.append(cleaned.replace(" ", "_"))
+
+        audience_names = ", ".join(valid_audiences)
+        if not audience_names:
+            audience_names = ""
+
+        # ✅ Sanitize creatives
+        valid_creatives = []
+        for creative in payload.creatives:
+            cleaned = creative.type.strip().lower()
+            if cleaned not in ("string", "unknown", "none", ""):
+                valid_creatives.append(cleaned.replace(" ", "_"))
+
+        creative_types = ", ".join(valid_creatives)
+        if not creative_types:
+            creative_types = ""
+
+        # Existing logic
         comparison_summary = " ".join(comparison.summary[:3]) or "No metric deltas available."
         tags = ", ".join(pattern_report.auto_tags) or "no tags"
 

@@ -26,14 +26,14 @@ export function analyzeCampaign(payload) {
   return request('/analyze-campaign', { method: 'POST', body: JSON.stringify(payload) })
 }
 
-// GET /get-insights?limit=N → InsightRecord[]
+// GET /insights?limit=N → InsightRecord[]
 export function getInsights(limit = 30) {
-  return request(`/get-insights?limit=${limit}`)
+  return request(`/insights?limit=${limit}`)
 }
 
-// GET /get-patterns?limit=N → PatternRecord[]
+// GET /patterns?limit=N → PatternRecord[]
 export function getPatterns(limit = 30) {
-  return request(`/get-patterns?limit=${limit}`)
+  return request(`/patterns?limit=${limit}`)
 }
 
 // GET /recommendations → RecommendationResponse

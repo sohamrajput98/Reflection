@@ -29,15 +29,17 @@ class PerformanceComparator:
 
         summary = []
         if deltas.ctr_diff.pct_diff is not None:
-            summary.append(f"CTR moved {deltas.ctr_diff.pct_diff:.2f}% versus forecast.")
+            direction = "increased" if deltas.ctr_diff.pct_diff > 0 else "decreased"
+            summary.append(f"CTR {direction} by {abs(deltas.ctr_diff.pct_diff):.2f}% vs forecast.")
         if deltas.cvr_diff.pct_diff is not None:
-            summary.append(f"CVR moved {deltas.cvr_diff.pct_diff:.2f}% versus forecast.")
+            direction = "increased" if deltas.cvr_diff.pct_diff > 0 else "decreased"
+            summary.append(f"CVR {direction} by {abs(deltas.cvr_diff.pct_diff):.2f}% vs forecast.")
         if deltas.cpa_diff.pct_diff is not None:
-            direction = "improved" if deltas.cpa_diff.favorable else "worsened"
-            summary.append(f"CPA {direction} by {abs(deltas.cpa_diff.pct_diff):.2f}% versus forecast.")
+            direction = "decreased" if deltas.cpa_diff.favorable else "increased"
+            summary.append(f"CPA {direction} by {abs(deltas.cpa_diff.pct_diff):.2f}% vs forecast.")
         if deltas.roas_diff.pct_diff is None:
             summary.append("ROAS unavailable because revenue was not provided.")
-
+        
         return ComparisonReport(
             campaign_id=payload.campaign_id,
             generated_at=datetime.now(timezone.utc),

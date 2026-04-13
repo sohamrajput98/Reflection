@@ -87,27 +87,45 @@ class PatternDetectionEngine:
             campaign_rows.append(campaign_row)
 
             for audience in campaign.audiences:
-                signal_name = (
+                raw_signal = (
                     audience.attributes.get("age_range")
                     or audience.attributes.get("age_band")
                     or audience.name
-                )
-                audience_rows.append(
-                    {
-                        **campaign_row,
-                        "audience_name": audience.name,
-                        "signal_name": signal_name,
-                        "segment": audience.attributes.get("segment", "general"),
-                        "city_tier": audience.attributes.get("city_tier", "unknown"),
-                    }
-                )
+            )
+
+            # sanitize
+            if not raw_signal:
+                continue
+
+            cleaned = str(raw_signal).strip().lower()
+
+            if cleaned in ("string", "unknown", "none", ""):
+                continue
+
+            signal_name = cleaned.replace(" ", "_")
+
+            audience_rows.append(
+                {
+                    **campaign_row,
+                    "audience_name": audience.name,
+                    "signal_name": signal_name,
+                    "segment": audience.attributes.get("segment", "general"),
+                    "city_tier": audience.attributes.get("city_tier", "unknown"),
+                }
+            )
 
             for creative in campaign.creatives:
+                cleaned_type = creative.type.strip().lower()
+
+            # Skip invalid creative types
+                if cleaned_type in ("string", "unknown", "none", ""):
+                    continue
+
                 creative_rows.append(
                     {
                         **campaign_row,
                         "creative_id": creative.id,
-                        "creative_type": creative.type.lower(),
+                        "creative_type": cleaned_type.replace(" ", "_"),
                         "headline": creative.headline,
                     }
                 )
@@ -125,6 +143,12 @@ class PatternDetectionEngine:
     ) -> list[PatternFinding]:
         if audience_df.empty:
             return []
+        
+        audience_df = audience_df[
+            ~audience_df["signal_name"].astype(str).str.strip().str.lower().isin(
+                ["string", "unknown", "none", ""]
+            )
+        ]
 
         baseline_cvr = campaign_df["cvr"].mean()
         baseline_score = campaign_df["score"].mean()
@@ -155,7 +179,10 @@ class PatternDetectionEngine:
             cvr_lift = float(row["cvr_lift"])
             score_lift = float(row["score_lift"])
             cpa_gain = float(row["cpa_gain"])
-            signal_name = str(row["signal_name"])
+            signal_name = str(row["signal_name"]).strip().lower()
+
+            if signal_name in ("string", "unknown", "none", ""):
+                continue
             findings.append(
                 PatternFinding(
                     finding_id=f"audience:{self._slug(signal_name)}",
@@ -186,7 +213,13 @@ class PatternDetectionEngine:
     ) -> list[PatternFinding]:
         if creative_df.empty:
             return []
-
+        
+        creative_df = creative_df[
+            ~creative_df["creative_type"].astype(str).str.strip().str.lower().isin(
+                ["string", "unknown", "none", ""]
+            )
+        ]
+        
         baseline_cvr = campaign_df["cvr"].mean()
         baseline_score = campaign_df["score"].mean()
         baseline_cpa = campaign_df["cpa"].mean()
@@ -415,18 +448,23 @@ class PatternDetectionEngine:
             f"objective:{self._slug(str(row['objective']))}",
             f"performance_band:{band}",
         ]
+
+    # ✅ Audience tags
         if not audience_df.empty:
             audience_rows = audience_df[audience_df["campaign_id"] == focus_campaign_id]
-            tags.extend(
-                f"audience:{self._slug(str(signal_name))}"
-                for signal_name in audience_rows["signal_name"].dropna().unique().tolist()
-            )
+            for signal_name in audience_rows["signal_name"].dropna().unique().tolist():
+                cleaned = str(signal_name).strip().lower()
+                if cleaned not in ("string", "unknown", "none", ""):
+                    tags.append(f"audience:{self._slug(cleaned)}")
+
+    # ✅ Creative tags
         if not creative_df.empty:
             creative_rows = creative_df[creative_df["campaign_id"] == focus_campaign_id]
-            tags.extend(
-                f"creative_type:{self._slug(str(creative_type))}"
-                for creative_type in creative_rows["creative_type"].dropna().unique().tolist()
-            )
+            for creative_type in creative_rows["creative_type"].dropna().unique().tolist():
+                cleaned = str(creative_type).strip().lower()
+                if cleaned not in ("string", "unknown", "none", ""):
+                    tags.append(f"creative_type:{self._slug(cleaned)}")
+
         return sorted(set(tags))
 
     def _percent_lift(self, value: float, baseline: float) -> float:

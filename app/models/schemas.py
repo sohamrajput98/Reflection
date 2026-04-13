@@ -23,15 +23,27 @@ class Metrics(BaseModel):
 
 
 class Audience(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     attributes: dict[str, Any] = Field(default_factory=dict)
 
+    @model_validator(mode="after")
+    def validate_name(self) -> "Audience":
+        if not self.name or not self.name.strip():
+            self.name = "unknown_audience"
+            return self
 
+        cleaned = self.name.strip().lower()
+
+        if cleaned in ("string", "unknown", "none"):
+            self.name = "unknown_audience"
+
+        return self
+    
 class Creative(BaseModel):
-    id: str
-    type: str
-    headline: str
-    primary_text: str
+    id: str = Field(min_length=1)
+    type: str = Field(min_length=1)
+    headline: str = Field(min_length=1)
+    primary_text: str = Field(min_length=1)
 
 
 class CampaignPerformanceInput(BaseModel):

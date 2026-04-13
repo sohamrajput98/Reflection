@@ -23,6 +23,7 @@ class Settings:
     supabase_url: str
     base_url: str
     supabase_key: str
+    enable_local_output: bool
     
     @classmethod
     def load(cls) -> "Settings":
@@ -58,6 +59,7 @@ class Settings:
             agent_id=agent_id,
             supabase_url=os.getenv("SUPABASE_URL"),
             supabase_key=os.getenv("SUPABASE_KEY"),
+            enable_local_output=os.getenv("ENABLE_LOCAL_OUTPUT", "false").lower() == "true",
         )
 
     def ensure_directories(self) -> None:

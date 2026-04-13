@@ -1,7 +1,5 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone
-
 import numpy as np
 
 from app.core.config import Settings
@@ -29,11 +27,11 @@ class FeedbackLoopEngine:
         comparison: ComparisonReport,
         pattern_report: PatternReport,
     ) -> WeightSnapshot:
-        
+
         self.repository.insert_campaign_performance(
             self.settings.agent_id,
-            comparison.performance_score
-    )
+            comparison.performance_score,
+        )
 
         baseline_scores = self.repository.fetch_performance_scores(limit=25)
         baseline = float(np.mean(baseline_scores)) if baseline_scores else comparison.performance_score
@@ -135,37 +133,48 @@ class FeedbackLoopEngine:
         pattern_report: PatternReport,
     ) -> list[str]:
 
+        platform = (payload.platform or "").strip().lower().replace(" ", "_")
+        objective = (payload.objective or "").strip().lower().replace(" ", "_")
+
         signal_keys = {
-            f"platform:{payload.platform.strip().lower().replace(' ', '_')}",
-            f"objective:{payload.objective.strip().lower().replace(' ', '_')}",
+            f"platform:{platform}",
+            f"objective:{objective}",
         }
 
+        # Audience loop
         for audience in payload.audiences:
+            attrs = audience.attributes or {}
             audience_key = (
-                audience.attributes.get("age_range")
-                or audience.attributes.get("age_band")
+                attrs.get("age_range")
+                or attrs.get("age_band")
                 or audience.name
             )
-            signal_keys.add(
-                f"audience:{str(audience_key).strip().lower().replace(' ', '_')}"
-            )
+
+            if (
+                audience_key
+                and str(audience_key).strip()
+                and str(audience_key).lower() not in ("string", "unknown", "none", "")
+            ):
+                signal_keys.add(
+                    f"audience:{str(audience_key).strip().lower().replace(' ', '_')}"
+                )
 
         for creative in payload.creatives:
-            signal_keys.add(
-                f"creative_type:{creative.type.strip().lower().replace(' ', '_')}"
+            raw_type = creative.type or ""
+            cleaned = raw_type.strip().lower()
+
+            creative_type = (
+                cleaned := cleaned.strip().lower().replace("&", "and").replace(" ", "_")
+                if cleaned and cleaned not in ("string", "unknown", "none")
+                else "unknown_creative"
             )
 
-        signal_keys.update(
-            finding.signal_key for finding in pattern_report.winning_audiences
-        )
-        signal_keys.update(
-            finding.signal_key for finding in pattern_report.high_performing_creatives
-        )
-        signal_keys.update(
-            finding.signal_key for finding in pattern_report.budget_inefficiencies
-        )
-        signal_keys.update(
-            finding.signal_key for finding in pattern_report.platform_trends
-        )
+        signal_keys.add(f"creative_type:{creative_type}")
+        
+        # Pattern report findings
+        signal_keys.update(finding.signal_key for finding in pattern_report.winning_audiences)
+        signal_keys.update(finding.signal_key for finding in pattern_report.high_performing_creatives)
+        signal_keys.update(finding.signal_key for finding in pattern_report.budget_inefficiencies)
+        signal_keys.update(finding.signal_key for finding in pattern_report.platform_trends)
 
         return sorted(signal_keys)

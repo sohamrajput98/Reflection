@@ -102,13 +102,21 @@ class SemanticMemoryStore:
             },
         ).execute()
 
-        return [
-            SemanticSearchResult(
-                document_id=item["id"],
-                campaign_id=item.get("source_id"),
-                score=item.get("similarity", 0.0),
-                summary=item.get("summary", ""),
-                metadata={},
-            )
-            for item in response.data or []
-        ]
+        seen_campaigns = set()
+        results = []
+        
+        for item in response.data or []:
+            campaign_id = item.get("source_id")
+            if campaign_id and campaign_id not in seen_campaigns:
+                seen_campaigns.add(campaign_id)
+                results.append(
+                    SemanticSearchResult(
+                        document_id=item["id"],
+                        campaign_id=campaign_id,
+                        score=item.get("similarity", 0.0),
+                        summary=item.get("summary", ""),
+                        metadata={},
+                    )
+                )
+        
+        return results
