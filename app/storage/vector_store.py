@@ -32,8 +32,9 @@ class SemanticMemoryStore:
                     input=texts,
                 )
                 return [item.embedding for item in response.data]
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"Embedding failed, falling back: {e}")
+                
 
         return [self._hash_embed(text) for text in texts]
 

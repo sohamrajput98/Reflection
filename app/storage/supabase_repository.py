@@ -89,6 +89,12 @@ class SupabaseRepository:
             return None
         return response.data[0].get("summary_text")
 
+    def insert_campaign_performance(self, agent_id: str, score: float) -> None:
+        self._db.table("campaign_performance").insert({
+            "agent_id": agent_id,
+            "performance_score": score
+        }).execute()
+        
     # ------------------------------------------------------------------
     # PERFORMANCE LOGS
     # ------------------------------------------------------------------

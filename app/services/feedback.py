@@ -13,12 +13,12 @@ from app.models.schemas import (
     WeightSnapshot,
 )
 from app.services.scoring import DEFAULT_SCORING_WEIGHTS
-from app.storage.sqlite import SQLiteRepository
+from app.storage.supabase_repository import SupabaseRepository
 from app.utils.io import read_json, write_json
 
 
 class FeedbackLoopEngine:
-    def __init__(self, settings: Settings, repository: SQLiteRepository) -> None:
+    def __init__(self, settings: Settings, repository: SupabaseRepository) -> None:
         self.settings = settings
         self.repository = repository
         self._ensure_weights_file()
@@ -29,24 +29,11 @@ class FeedbackLoopEngine:
         comparison: ComparisonReport,
         pattern_report: PatternReport,
     ) -> WeightSnapshot:
-
-        # ✅ NEW: store performance score in Supabase
-        try:
-            from app.db.connection import get_connection
-
-            conn = get_connection()
-            cur = conn.cursor()
-
-            cur.execute("""
-                INSERT INTO campaign_performance (agent_id, performance_score)
-                VALUES (%s, %s)
-            """, (self.settings.agent_id, comparison.performance_score))
-
-            conn.commit()
-            cur.close()
-            conn.close()
-        except Exception as e:
-            print("Performance insert failed:", e)
+        
+        self.repository.insert_campaign_performance(
+            self.settings.agent_id,
+            comparison.performance_score
+    )
 
         baseline_scores = self.repository.fetch_performance_scores(limit=25)
         baseline = float(np.mean(baseline_scores)) if baseline_scores else comparison.performance_score

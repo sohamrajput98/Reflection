@@ -21,6 +21,7 @@ class Settings:
     insights_limit: int
     agent_id: str
     supabase_url: str
+    base_url: str
     supabase_key: str
     
     @classmethod
@@ -52,6 +53,7 @@ class Settings:
                 "sentence-transformers/all-MiniLM-L6-v2"
             ),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_BASE_URL"),
             insights_limit=int(os.getenv("MARKO_INSIGHTS_LIMIT", "10")),
             agent_id=agent_id,
             supabase_url=os.getenv("SUPABASE_URL"),
