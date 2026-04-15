@@ -280,6 +280,10 @@ class InsightService:
         if not recommendations:
             recommendations.append("Run a controlled follow-up test with one audience variable and one creative variable changed.")
 
+        key_learnings = list(locals().get("key_learnings", []))
+        recommendations = list(locals().get("recommendations", []))
+        anomalies = list(locals().get("anomalies", []))
+
         key_learnings = self._dedupe(key_learnings)
         recommendations = self._dedupe(recommendations)
         anomalies = self._dedupe(anomalies)

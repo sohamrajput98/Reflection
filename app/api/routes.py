@@ -1,7 +1,7 @@
 from __future__ import annotations
 from unittest import result
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query
 
 from app.core.bootstrap import get_engine
 from app.models.schemas import (
@@ -27,9 +27,10 @@ def clean_text(obj):
 @router.post("/analyze-campaign", response_model=AnalyzeCampaignResponse)
 def analyze_campaign(
     payload: CampaignPerformanceInput,
+    background_tasks: BackgroundTasks,
     engine: ReflectionLearningEngine = Depends(get_engine),
 ) -> AnalyzeCampaignResponse:
-    result = engine.analyze_campaign(payload)
+    result = engine.analyze_campaign(payload, background_tasks=background_tasks)
     return clean_text(result)
 
 
@@ -55,7 +56,11 @@ def get_recommendations(
     objective: str | None = Query(default=None),
     engine: ReflectionLearningEngine = Depends(get_engine),
 ) -> RecommendationResponse:
-    result = engine.get_recommendations(platform=platform, objective=objective)
+    result = engine.get_recommendations(
+        platform=platform,
+        objective=objective,
+        include_similar_campaigns=False,
+    )
     return clean_text(result)
 
 

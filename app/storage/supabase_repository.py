@@ -52,9 +52,15 @@ class SupabaseRepository:
         ).execute()
 
     def fetch_campaign_history(self, limit: int = 50) -> list[CampaignPerformanceInput]:
+        if limit <= 0:
+            return []
+
         response = (
             self._db.table("campaigns")
-            .select("*")
+            .select(
+                "campaign_id, platform, objective, expected_metrics, "
+                "actual_metrics, audiences, creatives, timestamp"
+            )
             .eq("agent_id", self.settings.agent_id)
             .order("timestamp", desc=False)
             .limit(limit)
@@ -143,52 +149,32 @@ class SupabaseRepository:
         if not findings:
             return
 
-        seen = set()
-        rows = []
+        seen: set[tuple[str, str, str]] = set()
+        rows: list[dict[str, Any]] = []
 
         for finding in findings:
-            signal_key = (finding.signal_key or "").strip().lower()
-            category = (finding.category or "").strip().lower()
-
-            if not signal_key:
-                continue
-
-            key = (campaign_id, category, signal_key)
-
+            key = (campaign_id, finding.category, finding.signal_key)
             if key in seen:
                 continue
             seen.add(key)
-            
-            if not signal_key or not category:
-                continue
 
-            rows.append({
-                "campaign_id": campaign_id,
-                "agent_id": self.settings.agent_id,
-                "category": finding.category,
-                "signal_key": finding.signal_key,
-                "summary": finding.description,
-                "impact_score": finding.impact_score,
-                "metadata": finding.metadata,
-        })
-            
-            unique = {}
-            deduped_rows = []
+            rows.append(
+                {
+                    "campaign_id": campaign_id,
+                    "agent_id": self.settings.agent_id,
+                    "category": finding.category,
+                    "signal_key": finding.signal_key,
+                    "summary": finding.description,
+                    "impact_score": finding.impact_score,
+                    "metadata": finding.metadata,
+                }
+            )
 
-        for row in rows:
-            key = (row["campaign_id"], row["category"], row["signal_key"])
-
-            if key in unique:
-                continue
-
-            unique[key] = True
-            deduped_rows.append(row)
-
-        rows = deduped_rows
-        self._db.table("patterns").upsert(
-            rows,
-            on_conflict="campaign_id,category,signal_key"
-        ).execute()
+        if rows:
+            self._db.table("patterns").upsert(
+                rows,
+                on_conflict="campaign_id,category,signal_key",
+            ).execute()
 
     def fetch_patterns(self, limit: int = 20) -> list[PatternRecord]:
         response = (
@@ -222,69 +208,66 @@ class SupabaseRepository:
         insights: InsightExtractionOutput,
     ) -> None:
         rows: list[dict[str, Any]] = []
-        seen = set()
+        seen: set[tuple[str, str, str]] = set()
+
         for index, learning in enumerate(insights.key_learnings):
-            key = ("key_learning", learning.strip().lower())
+            content = (learning or "").strip()
+            if content.lower() in ("string", "unknown", "none", ""):
+                continue
+
+            key = (campaign_id, "key_learning", content)
             if key in seen:
                 continue
             seen.add(key)
-            content = (learning or "").strip().lower()
-            if content in ("string", "unknown", "none", ""):
-                continue
+
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "key_learning",
-                "content": learning.strip(),
+                "content": content,
                 "priority": max(1.0 - index * 0.1, 0.1),
             })
+
         for index, recommendation in enumerate(insights.recommendations):
-            key = ("recommendation", recommendation.strip().lower())
+            content = (recommendation or "").strip()
+            if content.lower() in ("string", "unknown", "none", ""):
+                continue
+
+            key = (campaign_id, "recommendation", content)
             if key in seen:
                 continue
             seen.add(key)
-            content = (recommendation or "").strip().lower()
-            if content in ("string", "unknown", "none", ""):
-                continue
+
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "recommendation",
-                "content": recommendation.strip(),
+                "content": content,
                 "priority": max(0.95 - index * 0.1, 0.1),
             })
+
         for anomaly in insights.anomalies:
-            key = ("anomaly", anomaly.strip().lower())
+            content = (anomaly or "").strip()
+            if content.lower() in ("string", "unknown", "none", ""):
+                continue
+
+            key = (campaign_id, "anomaly", content)
             if key in seen:
                 continue
             seen.add(key)
-            content = (anomaly or "").strip().lower()
-            if content in ("string", "unknown", "none", ""):
-                continue
+
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "anomaly",
-                "content": anomaly.strip(),
+                "content": content,
                 "priority": 1.0,
             })
 
         if rows:
-            # 🔹 DEDUPE BEFORE INSERT
-            unique = {}
-            for row in rows:
-                key = (
-                    row["campaign_id"],
-                    row["kind"],
-                    row["content"].strip().lower()[:80]   # normalize + truncate
-                )
-                if key not in unique:
-                    unique[key] = row
-
-            rows = list(unique.values())
             self._db.table("insights").upsert(
                 rows,
-                on_conflict="campaign_id,kind,content"
+                on_conflict="campaign_id,kind,content",
             ).execute()
 
     def fetch_top_insights(self, limit: int) -> list[InsightRecord]:
