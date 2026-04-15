@@ -91,34 +91,35 @@ class PatternDetectionEngine:
                     audience.attributes.get("age_range")
                     or audience.attributes.get("age_band")
                     or audience.name
-            )
+                )
 
-            # sanitize
-            if not raw_signal:
-                continue
+                # sanitize (NOW INSIDE LOOP ✅)
+                if not raw_signal:
+                    continue
 
-            cleaned = str(raw_signal).strip().lower()
+                cleaned = str(raw_signal).strip().lower()
 
-            if cleaned in ("string", "unknown", "none", ""):
-                continue
+                if cleaned in ("string", "unknown", "none", ""):
+                    continue
 
-            signal_name = cleaned.replace(" ", "_")
+                signal_name = cleaned.replace(" ", "_")
 
-            audience_rows.append(
-                {
-                    **campaign_row,
-                    "audience_name": audience.name,
-                    "signal_name": signal_name,
-                    "segment": audience.attributes.get("segment", "general"),
-                    "city_tier": audience.attributes.get("city_tier", "unknown"),
-                }
-            )
+                audience_rows.append(
+                    {
+                        **campaign_row,
+                        "audience_name": audience.name,
+                        "signal_name": signal_name,
+                        "segment": audience.attributes.get("segment", "general"),
+                        "city_tier": audience.attributes.get("city_tier", "unknown"),
+                    }
+                )
+
 
             for creative in campaign.creatives:
                 cleaned_type = creative.type.strip().lower()
 
-            # Skip invalid creative types
-                if cleaned_type in ("string", "unknown", "none", ""):
+                # Skip invalid creative types
+                if cleaned_type in ("string", "unknown", "none", "", "unknown_audience"):
                     continue
 
                 creative_rows.append(
@@ -146,7 +147,7 @@ class PatternDetectionEngine:
         
         audience_df = audience_df[
             ~audience_df["signal_name"].astype(str).str.strip().str.lower().isin(
-                ["string", "unknown", "none", ""]
+                ["string", "unknown", "none", "", "unknown_audience"]
             )
         ]
 
@@ -181,7 +182,7 @@ class PatternDetectionEngine:
             cpa_gain = float(row["cpa_gain"])
             signal_name = str(row["signal_name"]).strip().lower()
 
-            if signal_name in ("string", "unknown", "none", ""):
+            if signal_name in ("string", "unknown", "none", "", "unknown_audience"):
                 continue
             findings.append(
                 PatternFinding(
@@ -329,7 +330,11 @@ class PatternDetectionEngine:
         findings: list[PatternFinding] = []
         for _, row in grouped.head(3).iterrows():
             score_lift = self._percent_lift(float(row["avg_score"]), float(baseline_score))
-            platform = str(row["platform"])
+            platform = str(row["platform"]).strip()
+            
+            # skip invalid platform values
+            if platform.lower() in ("string", "unknown", "none", ""):
+                continue
             findings.append(
                 PatternFinding(
                     finding_id=f"platform:{self._slug(platform)}",
@@ -351,6 +356,11 @@ class PatternDetectionEngine:
             )
 
         for platform, group in campaign_df.sort_values("timestamp").groupby("platform"):
+            platform = str(platform).strip()
+
+            # skip invalid platform values
+            if platform.lower() in ("string", "unknown", "none", ""):
+                continue
             if len(group) < 3:
                 continue
             trend = np.polyfit(np.arange(len(group)), group["ctr"], 1)[0]
@@ -404,7 +414,13 @@ class PatternDetectionEngine:
             .sort_values("avg_score", ascending=False)
         )
         for _, row in grouped.iterrows():
-            label = str(row["cluster_label"])
+            label = str(row["cluster_label"]).strip()
+            if label.lower() in ("string", "unknown", "none", ""):
+                continue
+            if float(row["avg_cvr"]) == 0:
+                continue
+            if float(row["avg_cpa"]) == 0:
+                continue
             findings.append(
                 PatternFinding(
                     finding_id=f"cluster:{label}",
@@ -443,11 +459,20 @@ class PatternDetectionEngine:
         else:
             band = "mid_band"
 
-        tags = [
-            f"platform:{self._slug(str(row['platform']))}",
-            f"objective:{self._slug(str(row['objective']))}",
-            f"performance_band:{band}",
-        ]
+        tags = []
+
+        # platform tag
+        platform = str(row["platform"]).strip().lower()
+        if platform not in ("string", "unknown", "none", ""):
+            tags.append(f"platform:{self._slug(platform)}")
+
+        # objective tag
+        objective = str(row["objective"]).strip().lower()
+        if objective not in ("string", "unknown", "none", ""):
+            tags.append(f"objective:{self._slug(objective)}")
+
+        # always valid
+        tags.append(f"performance_band:{band}")
 
     # ✅ Audience tags
         if not audience_df.empty:

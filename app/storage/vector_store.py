@@ -70,13 +70,13 @@ class SemanticMemoryStore:
                 "source_table": doc.get("source_table"),
                 "source_id": str(uuid.uuid5(uuid.NAMESPACE_DNS, str(doc.get("source_id")))),
                 "agent_id": doc.get("agent_id"),
-                "summary": doc.get("summary"),
+                "summary": f"[CID:{doc.get('source_id')}] {doc.get('summary')}",
                 "embedding": embedding,
                 "created_at": doc.get("created_at"),
             }
             for doc, embedding in zip(documents, embeddings)
         ]
-
+        print("SUMMARY DEBUG:", summaries)
         supabase.table("agent_embeddings").insert(rows).execute()
         return True
 
@@ -106,7 +106,18 @@ class SemanticMemoryStore:
         results = []
         
         for item in response.data or []:
-            campaign_id = item.get("source_id")
+            summary = item.get("summary", "")
+
+            campaign_id = None
+            if summary.startswith("[CID:"):
+                try:
+                    campaign_id = summary.split("[CID:")[1].split("]")[0]
+                except Exception:
+                    campaign_id = None
+
+            if not campaign_id:
+                campaign_id = item.get("source_id")
+
             if campaign_id and campaign_id not in seen_campaigns:
                 seen_campaigns.add(campaign_id)
                 results.append(
@@ -114,7 +125,7 @@ class SemanticMemoryStore:
                         document_id=item["id"],
                         campaign_id=campaign_id,
                         score=item.get("similarity", 0.0),
-                        summary=item.get("summary", ""),
+                        summary=summary,
                         metadata={},
                     )
                 )
