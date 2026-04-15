@@ -163,13 +163,12 @@ class FeedbackLoopEngine:
             raw_type = creative.type or ""
             cleaned = raw_type.strip().lower()
 
-            creative_type = (
-                cleaned := cleaned.strip().lower().replace("&", "and").replace(" ", "_")
-                if cleaned and cleaned not in ("string", "unknown", "none")
-                else "unknown_creative"
-            )
+            if not cleaned or cleaned in ("string", "unknown", "none"):
+                continue
 
-        signal_keys.add(f"creative_type:{creative_type}")
+            creative_type = cleaned.replace("&", "and").replace(" ", "_")
+
+            signal_keys.add(f"creative_type:{creative_type}")
         
         # Pattern report findings
         signal_keys.update(finding.signal_key for finding in pattern_report.winning_audiences)

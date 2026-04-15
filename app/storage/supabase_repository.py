@@ -94,7 +94,7 @@ class SupabaseRepository:
             "agent_id": agent_id,
             "performance_score": score
         }).execute()
-        
+
     # ------------------------------------------------------------------
     # PERFORMANCE LOGS
     # ------------------------------------------------------------------
@@ -143,8 +143,26 @@ class SupabaseRepository:
         if not findings:
             return
 
-        rows = [
-            {
+        seen = set()
+        rows = []
+
+        for finding in findings:
+            signal_key = (finding.signal_key or "").strip().lower()
+            category = (finding.category or "").strip().lower()
+
+            if not signal_key:
+                continue
+
+            key = (campaign_id, category, signal_key)
+
+            if key in seen:
+                continue
+            seen.add(key)
+            
+            if not signal_key or not category:
+                continue
+
+            rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "category": finding.category,
@@ -152,10 +170,25 @@ class SupabaseRepository:
                 "summary": finding.description,
                 "impact_score": finding.impact_score,
                 "metadata": finding.metadata,
-            }
-            for finding in findings
-        ]
-        self._db.table("patterns").insert(rows).execute()
+        })
+            
+            unique = {}
+            deduped_rows = []
+
+        for row in rows:
+            key = (row["campaign_id"], row["category"], row["signal_key"])
+
+            if key in unique:
+                continue
+
+            unique[key] = True
+            deduped_rows.append(row)
+
+        rows = deduped_rows
+        self._db.table("patterns").upsert(
+            rows,
+            on_conflict="campaign_id,category,signal_key"
+        ).execute()
 
     def fetch_patterns(self, limit: int = 20) -> list[PatternRecord]:
         response = (
@@ -189,33 +222,70 @@ class SupabaseRepository:
         insights: InsightExtractionOutput,
     ) -> None:
         rows: list[dict[str, Any]] = []
+        seen = set()
         for index, learning in enumerate(insights.key_learnings):
+            key = ("key_learning", learning.strip().lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            content = (learning or "").strip().lower()
+            if content in ("string", "unknown", "none", ""):
+                continue
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "key_learning",
-                "content": learning,
+                "content": learning.strip(),
                 "priority": max(1.0 - index * 0.1, 0.1),
             })
         for index, recommendation in enumerate(insights.recommendations):
+            key = ("recommendation", recommendation.strip().lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            content = (recommendation or "").strip().lower()
+            if content in ("string", "unknown", "none", ""):
+                continue
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "recommendation",
-                "content": recommendation,
+                "content": recommendation.strip(),
                 "priority": max(0.95 - index * 0.1, 0.1),
             })
         for anomaly in insights.anomalies:
+            key = ("anomaly", anomaly.strip().lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            content = (anomaly or "").strip().lower()
+            if content in ("string", "unknown", "none", ""):
+                continue
             rows.append({
                 "campaign_id": campaign_id,
                 "agent_id": self.settings.agent_id,
                 "kind": "anomaly",
-                "content": anomaly,
+                "content": anomaly.strip(),
                 "priority": 1.0,
             })
 
         if rows:
-            self._db.table("insights").insert(rows).execute()
+            # 🔹 DEDUPE BEFORE INSERT
+            unique = {}
+            for row in rows:
+                key = (
+                    row["campaign_id"],
+                    row["kind"],
+                    row["content"].strip().lower()[:80]   # normalize + truncate
+                )
+                if key not in unique:
+                    unique[key] = row
+
+            rows = list(unique.values())
+            self._db.table("insights").upsert(
+                rows,
+                on_conflict="campaign_id,kind,content"
+            ).execute()
 
     def fetch_top_insights(self, limit: int) -> list[InsightRecord]:
         response = (
@@ -241,7 +311,20 @@ class SupabaseRepository:
     # ------------------------------------------------------------------
     # SIGNAL WEIGHTS
     # ------------------------------------------------------------------
+    def _is_valid_signal(self, signal: str | None) -> bool:
+        if not signal:
+            return False
 
+        s = signal.strip().lower()
+
+        if any(x in s for x in ("string", "unknown", "none", "")):
+            return False
+        
+        if s in ("string", "unknown", "none", ""):
+            return False
+
+        return True
+    
     def fetch_signal_weights(self) -> dict[str, FeedbackSignal]:
         response = (
             self._db.table("signal_weights")
@@ -249,31 +332,45 @@ class SupabaseRepository:
             .eq("agent_id", self.settings.agent_id)
             .execute()
         )
-        return {
-            row["signal_key"]: FeedbackSignal(
-                signal_key=row["signal_key"],
+        
+        cleaned = {}
+
+        for row in response.data or []:
+            signal = row["signal_key"]
+
+            if not self._is_valid_signal(signal):
+                continue
+
+            cleaned[signal] = FeedbackSignal(
+                signal_key=signal,
                 weight=row["weight"],
                 successes=row["successes"],
                 failures=row["failures"],
                 last_updated=datetime.fromisoformat(row["last_updated"]),
             )
-            for row in response.data or []
-        }
+
+        return cleaned
 
     def upsert_signal_weights(self, signals: list[FeedbackSignal]) -> None:
         if not signals:
             return
-        rows = [
-            {
+        rows = []
+
+        for s in signals:
+            if not self._is_valid_signal(s.signal_key):
+                continue
+
+            rows.append({
                 "agent_id": self.settings.agent_id,
                 "signal_key": s.signal_key,
                 "weight": s.weight,
                 "successes": s.successes,
                 "failures": s.failures,
                 "last_updated": s.last_updated.isoformat(),
-            }
-            for s in signals
-        ]
+            })
+         # ✅ CRITICAL FIX
+        if not rows:
+            return
         self._db.table("signal_weights").upsert(
             rows, on_conflict="agent_id,signal_key"
         ).execute()
