@@ -13,6 +13,7 @@ from app.models.schemas import (
 from app.services.scoring import DEFAULT_SCORING_WEIGHTS
 from app.storage.supabase_repository import SupabaseRepository
 from app.utils.io import read_json, write_json
+from app.utils.normalization import is_valid_signal_key, normalize_signal_value
 
 
 class FeedbackLoopEngine:
@@ -132,16 +133,16 @@ class FeedbackLoopEngine:
         payload: CampaignPerformanceInput,
         pattern_report: PatternReport,
     ) -> list[str]:
+        signal_keys: set[str] = set()
 
-        platform = (payload.platform or "").strip().lower().replace(" ", "_")
-        objective = (payload.objective or "").strip().lower().replace(" ", "_")
+        platform = normalize_signal_value(payload.platform)
+        objective = normalize_signal_value(payload.objective)
 
-        signal_keys = {
-            f"platform:{platform}",
-            f"objective:{objective}",
-        }
+        if platform:
+            signal_keys.add(f"platform:{platform}")
+        if objective:
+            signal_keys.add(f"objective:{objective}")
 
-        # Audience loop
         for audience in payload.audiences:
             attrs = audience.attributes or {}
             audience_key = (
@@ -149,31 +150,23 @@ class FeedbackLoopEngine:
                 or attrs.get("age_band")
                 or audience.name
             )
-
-            if (
-                audience_key
-                and str(audience_key).strip()
-                and str(audience_key).lower() not in ("string", "unknown", "none", "")
-            ):
-                signal_keys.add(
-                    f"audience:{str(audience_key).strip().lower().replace(' ', '_')}"
-                )
+            cleaned = normalize_signal_value(audience_key)
+            if cleaned:
+                signal_keys.add(f"audience:{cleaned}")
 
         for creative in payload.creatives:
-            raw_type = creative.type or ""
-            cleaned = raw_type.strip().lower()
+            creative_type = normalize_signal_value(creative.type)
+            if creative_type:
+                signal_keys.add(f"creative_type:{creative_type}")
 
-            if not cleaned or cleaned in ("string", "unknown", "none"):
-                continue
-
-            creative_type = cleaned.replace("&", "and").replace(" ", "_")
-
-            signal_keys.add(f"creative_type:{creative_type}")
-        
-        # Pattern report findings
-        signal_keys.update(finding.signal_key for finding in pattern_report.winning_audiences)
-        signal_keys.update(finding.signal_key for finding in pattern_report.high_performing_creatives)
-        signal_keys.update(finding.signal_key for finding in pattern_report.budget_inefficiencies)
-        signal_keys.update(finding.signal_key for finding in pattern_report.platform_trends)
+        for finding in (
+            pattern_report.winning_audiences
+            + pattern_report.high_performing_creatives
+            + pattern_report.budget_inefficiencies
+            + pattern_report.platform_trends
+        ):
+            if is_valid_signal_key(finding.signal_key):
+                signal_keys.add(finding.signal_key)
 
         return sorted(signal_keys)
+

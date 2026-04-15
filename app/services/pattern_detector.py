@@ -9,6 +9,7 @@ import pandas as pd
 from app.models.schemas import CampaignPerformanceInput, PatternFinding, PatternReport
 from app.services.scoring import ScoringService
 from app.utils.metrics import compute_metric_snapshot, finite_or_default
+from app.utils.normalization import is_valid_signal_key, normalize_signal_value
 
 
 class PatternDetectionEngine:
@@ -44,6 +45,7 @@ class PatternDetectionEngine:
                 + platform_trends
                 + clusters
             )
+            if finding.description and is_valid_signal_key(finding.signal_key)
         ]
 
         return PatternReport(
@@ -92,17 +94,9 @@ class PatternDetectionEngine:
                     or audience.attributes.get("age_band")
                     or audience.name
                 )
-
-                # sanitize (NOW INSIDE LOOP ✅)
-                if not raw_signal:
+                signal_name = normalize_signal_value(raw_signal)
+                if not signal_name:
                     continue
-
-                cleaned = str(raw_signal).strip().lower()
-
-                if cleaned in ("string", "unknown", "none", ""):
-                    continue
-
-                signal_name = cleaned.replace(" ", "_")
 
                 audience_rows.append(
                     {
@@ -114,19 +108,16 @@ class PatternDetectionEngine:
                     }
                 )
 
-
             for creative in campaign.creatives:
-                cleaned_type = creative.type.strip().lower()
-
-                # Skip invalid creative types
-                if cleaned_type in ("string", "unknown", "none", "", "unknown_audience"):
+                creative_type = normalize_signal_value(creative.type)
+                if not creative_type:
                     continue
 
                 creative_rows.append(
                     {
                         **campaign_row,
                         "creative_id": creative.id,
-                        "creative_type": cleaned_type.replace(" ", "_"),
+                        "creative_type": creative_type,
                         "headline": creative.headline,
                     }
                 )
@@ -144,7 +135,7 @@ class PatternDetectionEngine:
     ) -> list[PatternFinding]:
         if audience_df.empty:
             return []
-        
+
         audience_df = audience_df[
             ~audience_df["signal_name"].astype(str).str.strip().str.lower().isin(
                 ["string", "unknown", "none", "", "unknown_audience"]
@@ -180,13 +171,13 @@ class PatternDetectionEngine:
             cvr_lift = float(row["cvr_lift"])
             score_lift = float(row["score_lift"])
             cpa_gain = float(row["cpa_gain"])
-            signal_name = str(row["signal_name"]).strip().lower()
+            signal_name = normalize_signal_value(row["signal_name"])
 
-            if signal_name in ("string", "unknown", "none", "", "unknown_audience"):
+            if not signal_name:
                 continue
             findings.append(
                 PatternFinding(
-                    finding_id=f"audience:{self._slug(signal_name)}",
+                    finding_id=f"audience:{signal_name}",
                     category="winning_audiences",
                     title=f"{signal_name} audiences outperform baseline",
                     description=(
@@ -194,7 +185,7 @@ class PatternDetectionEngine:
                         f"performance score versus baseline, with {self._format_delta(cvr_lift, 'higher', 'lower')} CVR "
                         f"and {self._format_delta(cpa_gain, 'lower', 'higher')} CPA across {int(row['campaigns'])} campaigns."
                     ),
-                    signal_key=f"audience:{self._slug(signal_name)}",
+                    signal_key=f"audience:{signal_name}",
                     impact_score=round(float(row["composite_rank"]), 2),
                     evidence_count=int(row["campaigns"]),
                     metadata={
@@ -214,13 +205,13 @@ class PatternDetectionEngine:
     ) -> list[PatternFinding]:
         if creative_df.empty:
             return []
-        
+
         creative_df = creative_df[
             ~creative_df["creative_type"].astype(str).str.strip().str.lower().isin(
                 ["string", "unknown", "none", ""]
             )
         ]
-        
+
         baseline_cvr = campaign_df["cvr"].mean()
         baseline_score = campaign_df["score"].mean()
         baseline_cpa = campaign_df["cpa"].mean()
@@ -247,13 +238,15 @@ class PatternDetectionEngine:
 
         findings: list[PatternFinding] = []
         for _, row in grouped.head(3).iterrows():
-            creative_type = str(row["creative_type"])
+            creative_type = normalize_signal_value(row["creative_type"])
             cvr_lift = float(row["cvr_lift"])
             score_lift = float(row["score_lift"])
             cpa_gain = float(row["cpa_gain"])
+            if not creative_type:
+                continue
             findings.append(
                 PatternFinding(
-                    finding_id=f"creative:{self._slug(creative_type)}",
+                    finding_id=f"creative:{creative_type}",
                     category="high_performing_creatives",
                     title=f"{creative_type.title()} creatives lead on conversion efficiency",
                     description=(
@@ -262,7 +255,7 @@ class PatternDetectionEngine:
                         f"{self._format_delta(cpa_gain, 'lower', 'higher')} CPA while sustaining {float(row['avg_ctr']):.1%} CTR "
                         f"across {int(row['campaigns'])} campaigns."
                     ),
-                    signal_key=f"creative_type:{self._slug(creative_type)}",
+                    signal_key=f"creative_type:{creative_type}",
                     impact_score=round(float(row["composite_rank"]), 2),
                     evidence_count=int(row["campaigns"]),
                     metadata={
@@ -331,20 +324,20 @@ class PatternDetectionEngine:
         for _, row in grouped.head(3).iterrows():
             score_lift = self._percent_lift(float(row["avg_score"]), float(baseline_score))
             platform = str(row["platform"]).strip()
-            
-            # skip invalid platform values
-            if platform.lower() in ("string", "unknown", "none", ""):
+            platform_key = normalize_signal_value(platform)
+
+            if not platform_key:
                 continue
             findings.append(
                 PatternFinding(
-                    finding_id=f"platform:{self._slug(platform)}",
+                    finding_id=f"platform:{platform_key}",
                     category="platform_trends",
                     title=f"{platform} trend snapshot",
                     description=(
                         f"{platform} campaigns average {float(row['avg_ctr']):.1%} CTR and {float(row['avg_cvr']):.1%} CVR, "
                         f"driving a {self._format_delta(score_lift, 'stronger', 'weaker')} score than the portfolio average."
                     ),
-                    signal_key=f"platform:{self._slug(platform)}",
+                    signal_key=f"platform:{platform_key}",
                     impact_score=round(score_lift, 2),
                     evidence_count=int(row["campaigns"]),
                     metadata={
@@ -357,23 +350,23 @@ class PatternDetectionEngine:
 
         for platform, group in campaign_df.sort_values("timestamp").groupby("platform"):
             platform = str(platform).strip()
+            platform_key = normalize_signal_value(platform)
 
-            # skip invalid platform values
-            if platform.lower() in ("string", "unknown", "none", ""):
+            if not platform_key:
                 continue
             if len(group) < 3:
                 continue
             trend = np.polyfit(np.arange(len(group)), group["ctr"], 1)[0]
             findings.append(
                 PatternFinding(
-                    finding_id=f"platform_trend:{self._slug(str(platform))}",
+                    finding_id=f"platform_trend:{platform_key}",
                     category="platform_trends",
                     title=f"{platform} CTR trend",
                     description=(
                         f"{platform} CTR is trending {'up' if trend >= 0 else 'down'} by {abs(trend):.2%} "
                         f"per campaign over the last {len(group)} runs."
                     ),
-                    signal_key=f"platform_trend:{self._slug(str(platform))}",
+                    signal_key=f"platform_trend:{platform_key}",
                     impact_score=round(float(trend) * 100, 2),
                     evidence_count=len(group),
                     metadata={"metric": "ctr_slope"},
@@ -461,34 +454,29 @@ class PatternDetectionEngine:
 
         tags = []
 
-        # platform tag
-        platform = str(row["platform"]).strip().lower()
-        if platform not in ("string", "unknown", "none", ""):
-            tags.append(f"platform:{self._slug(platform)}")
+        platform = normalize_signal_value(row["platform"])
+        if platform:
+            tags.append(f"platform:{platform}")
 
-        # objective tag
-        objective = str(row["objective"]).strip().lower()
-        if objective not in ("string", "unknown", "none", ""):
-            tags.append(f"objective:{self._slug(objective)}")
+        objective = normalize_signal_value(row["objective"])
+        if objective:
+            tags.append(f"objective:{objective}")
 
-        # always valid
         tags.append(f"performance_band:{band}")
 
-    # ✅ Audience tags
         if not audience_df.empty:
             audience_rows = audience_df[audience_df["campaign_id"] == focus_campaign_id]
             for signal_name in audience_rows["signal_name"].dropna().unique().tolist():
-                cleaned = str(signal_name).strip().lower()
-                if cleaned not in ("string", "unknown", "none", ""):
-                    tags.append(f"audience:{self._slug(cleaned)}")
+                cleaned = normalize_signal_value(signal_name)
+                if cleaned:
+                    tags.append(f"audience:{cleaned}")
 
-    # ✅ Creative tags
         if not creative_df.empty:
             creative_rows = creative_df[creative_df["campaign_id"] == focus_campaign_id]
             for creative_type in creative_rows["creative_type"].dropna().unique().tolist():
-                cleaned = str(creative_type).strip().lower()
-                if cleaned not in ("string", "unknown", "none", ""):
-                    tags.append(f"creative_type:{self._slug(cleaned)}")
+                cleaned = normalize_signal_value(creative_type)
+                if cleaned:
+                    tags.append(f"creative_type:{cleaned}")
 
         return sorted(set(tags))
 
