@@ -26,10 +26,13 @@ class SemanticMemoryStore:
     def _embed_texts(self, texts: list[str]) -> list[list[float]]:
         if self._client is not None:
             try:
-                response = self._client.embeddings.create(
-                    model=self.settings.embedding_model,
-                    input=texts,
-                )
+                request_kwargs = {
+                    "model": self.settings.embedding_model,
+                    "input": texts,
+                }
+                if self.settings.embedding_model == "text-embedding-3-small":
+                    request_kwargs["dimensions"] = 384
+                response = self._client.embeddings.create(**request_kwargs)
                 return [item.embedding for item in response.data]
             except Exception:
                 pass

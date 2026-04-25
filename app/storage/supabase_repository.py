@@ -31,6 +31,10 @@ class SupabaseRepository:
             return campaign_id[len(prefix):]
         return campaign_id
 
+    def _supports_conflict_target(self, exc: Exception) -> bool:
+        message = str(exc).lower()
+        return "42p10" not in message and "no unique or exclusion constraint" not in message
+
     def save_campaign(
         self,
         payload: CampaignPerformanceInput,
@@ -38,22 +42,25 @@ class SupabaseRepository:
         summary_text: str,
         auto_tags: list[str],
     ) -> None:
-        self._db.table("campaigns").upsert(
-            {
-                "campaign_id": self._storage_campaign_id(payload.campaign_id),
-                "agent_id": self.settings.agent_id,
-                "platform": payload.platform,
-                "objective": payload.objective,
-                "timestamp": payload.timestamp.isoformat(),
-                "expected_metrics": payload.expected_metrics.model_dump(mode="json"),
-                "actual_metrics": payload.actual_metrics.model_dump(mode="json"),
-                "audiences": [a.model_dump(mode="json") for a in payload.audiences],
-                "creatives": [c.model_dump(mode="json") for c in payload.creatives],
-                "summary_text": summary_text,
-                "auto_tags": auto_tags,
-            },
-            on_conflict="campaign_id",
-        ).execute()
+        row = {
+            "campaign_id": self._storage_campaign_id(payload.campaign_id),
+            "agent_id": self.settings.agent_id,
+            "platform": payload.platform,
+            "objective": payload.objective,
+            "timestamp": payload.timestamp.isoformat(),
+            "expected_metrics": payload.expected_metrics.model_dump(mode="json"),
+            "actual_metrics": payload.actual_metrics.model_dump(mode="json"),
+            "audiences": [a.model_dump(mode="json") for a in payload.audiences],
+            "creatives": [c.model_dump(mode="json") for c in payload.creatives],
+            "summary_text": summary_text,
+            "auto_tags": auto_tags,
+        }
+        try:
+            self._db.table("campaigns").upsert(row, on_conflict="campaign_id").execute()
+        except Exception as exc:
+            if self._supports_conflict_target(exc):
+                raise
+            self._db.table("campaigns").insert(row).execute()
 
     def fetch_campaign_history(self, limit: int = 50) -> list[CampaignPerformanceInput]:
         if limit <= 0:
@@ -66,12 +73,12 @@ class SupabaseRepository:
                 "actual_metrics, audiences, creatives, timestamp"
             )
             .eq("agent_id", self.settings.agent_id)
-            .order("timestamp", desc=False)
+            .order("timestamp", desc=True)
             .limit(limit)
             .execute()
         )
         history: list[CampaignPerformanceInput] = []
-        for row in response.data or []:
+        for row in reversed(response.data or []):
             history.append(
                 CampaignPerformanceInput(
                     campaign_id=self._public_campaign_id(row["campaign_id"]),
@@ -120,14 +127,16 @@ class SupabaseRepository:
         ).execute()
 
     def fetch_performance_scores(self, limit: int = 25) -> list[float]:
-        response = (
-            self._db.table("performance_logs")
+        query = (
+            self._db.table("campaign_performance")
             .select("performance_score")
             .eq("agent_id", self.settings.agent_id)
-            .order("created_at", desc=True)
             .limit(limit)
-            .execute()
         )
+        try:
+            response = query.order("created_at", desc=True).execute()
+        except Exception:
+            response = query.execute()
         return [row["performance_score"] for row in response.data or []]
 
     def save_pattern_report(
@@ -168,10 +177,15 @@ class SupabaseRepository:
             )
 
         if rows:
-            self._db.table("patterns").upsert(
-                rows,
-                on_conflict="campaign_id,category,signal_key",
-            ).execute()
+            try:
+                self._db.table("patterns").upsert(
+                    rows,
+                    on_conflict="campaign_id,category,signal_key",
+                ).execute()
+            except Exception as exc:
+                if self._supports_conflict_target(exc):
+                    raise
+                self._db.table("patterns").insert(rows).execute()
 
     def fetch_patterns(self, limit: int = 20) -> list[PatternRecord]:
         response = (
@@ -259,10 +273,15 @@ class SupabaseRepository:
             })
 
         if rows:
-            self._db.table("insights").upsert(
-                rows,
-                on_conflict="campaign_id,kind,content",
-            ).execute()
+            try:
+                self._db.table("insights").upsert(
+                    rows,
+                    on_conflict="campaign_id,kind,content",
+                ).execute()
+            except Exception as exc:
+                if self._supports_conflict_target(exc):
+                    raise
+                self._db.table("insights").insert(rows).execute()
 
     def fetch_top_insights(self, limit: int) -> list[InsightRecord]:
         response = (
@@ -290,9 +309,6 @@ class SupabaseRepository:
             return False
 
         s = signal.strip().lower()
-
-        if any(x in s for x in ("string", "unknown", "none", "")):
-            return False
 
         if s in ("string", "unknown", "none", ""):
             return False

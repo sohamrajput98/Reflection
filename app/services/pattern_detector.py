@@ -493,12 +493,3 @@ class PatternDetectionEngine:
     def _format_delta(self, value: float, positive_word: str, negative_word: str) -> str:
         direction = positive_word if value >= 0 else negative_word
         return f"{abs(value):.0f}% {direction}"
-
-    def _slug(self, value: str) -> str:
-        return (
-            value.strip()
-            .lower()
-            .replace("&", "and")
-            .replace("/", "-")
-            .replace(" ", "_")
-        )

@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from uuid import UUID
 from typing import Any
-from uuid import UUID
+
 from pydantic import BaseModel, Field, model_validator
-from uuid import UUID
 
 class Metrics(BaseModel):
     impressions: int = Field(ge=0)
@@ -148,11 +148,19 @@ class StorageConfirmation(BaseModel):
     output_path: str
 
 
+class ReflectionEvaluation(BaseModel):
+    evaluation_score: float
+    reason: str = ""
+    scoring_version: int = 1
+
+
 class AnalyzeCampaignResponse(BaseModel):
     comparison_report: ComparisonReport
     pattern_report: PatternReport
     insights: InsightExtractionOutput
     weights: WeightSnapshot
+    reflection: ReflectionEvaluation
+    top_signals: list[str] = Field(default_factory=list)
     similar_campaigns: list[SemanticSearchResult] = Field(default_factory=list)
     stored_memory: StorageConfirmation
 

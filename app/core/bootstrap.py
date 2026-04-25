@@ -10,6 +10,7 @@ from app.agents.memory_agent import MemoryAgent
 from app.agents.pattern_agent import PatternAgent
 from app.agents.supervisor_agent import SupervisorAgent
 from app.core.config import Settings
+from app.orchestration.reflection_wrapper import ReflectionWrapper
 from app.services.analyzer import ReflectionLearningEngine
 from app.services.comparator import PerformanceComparator
 from app.services.feedback import FeedbackLoopEngine
@@ -45,6 +46,7 @@ def get_engine() -> ReflectionLearningEngine:
     pattern_detector = PatternDetectionEngine(scoring_service)
     insight_service = InsightService(settings)
     feedback_engine = FeedbackLoopEngine(settings, repository)
+    reflection_wrapper = ReflectionWrapper()
 
     analysis_agent = AnalysisAgent(comparator=comparator)
     pattern_agent = PatternAgent(repository=repository, pattern_detector=pattern_detector)
@@ -67,6 +69,7 @@ def get_engine() -> ReflectionLearningEngine:
         insight_agent=insight_agent,
         memory_agent=memory_agent,
         feedback_engine=feedback_engine,
+        reflection_wrapper=reflection_wrapper,
     )
 
     return ReflectionLearningEngine(

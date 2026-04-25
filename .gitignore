@@ -25,3 +25,11 @@ output/
 data/
 
 node_modules/
+.env
+__pycache__/
+*.pyc
+frontend/node_modules/
+frontend/dist/
+project_structure.text
+.project_structure_ignore
+docs/.project_structure_filter

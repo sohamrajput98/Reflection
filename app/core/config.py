@@ -60,10 +60,10 @@ class Settings:
             vector_path=vector_path,
             vector_fallback_path=vector_fallback_path,
             weights_path=weights_path,
-            insights_model=os.getenv("MARKO_INSIGHTS_MODEL", "openrouter/free"),
+            insights_model=os.getenv("MARKO_INSIGHTS_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"),
             embedding_model=os.getenv(
                 "MARKO_EMBEDDING_MODEL",
-                "sentence-transformers/all-MiniLM-L6-v2",
+                "text-embedding-3-small",
             ),
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_BASE_URL"),

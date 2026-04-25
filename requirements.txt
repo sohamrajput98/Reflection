@@ -10,6 +10,7 @@ python-dotenv==1.0.0
 
 httpx
 requests==2.32.5
+openai
 
 pydantic==2.12.5
 numpy
