@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import logging
 from typing import Any
 
 from supabase import Client
@@ -15,6 +16,8 @@ from app.models.schemas import (
     PatternRecord,
     PatternReport,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class SupabaseRepository:
@@ -34,6 +37,10 @@ class SupabaseRepository:
     def _supports_conflict_target(self, exc: Exception) -> bool:
         message = str(exc).lower()
         return "42p10" not in message and "no unique or exclusion constraint" not in message
+
+    def _is_unique_violation(self, exc: Exception) -> bool:
+        message = str(exc).lower()
+        return "23505" in message or "duplicate key" in message or "unique constraint" in message
 
     def save_campaign(
         self,
@@ -367,3 +374,150 @@ class SupabaseRepository:
 
     def current_timestamp(self) -> datetime:
         return datetime.now(timezone.utc)
+
+    def record_recommendation_shown(
+        self,
+        *,
+        recommendation_id: str,
+        campaign_id: str,
+        recommendation_type: str,
+        platform: str,
+        request_id: str | None,
+    ) -> None:
+        row = {
+            "recommendation_id": recommendation_id,
+            "campaign_id": self._storage_campaign_id(campaign_id),
+            "agent_id": self.settings.agent_id,
+            "recommendation_type": recommendation_type,
+            "platform": platform,
+            "shown_at": self.current_timestamp().isoformat(),
+            "request_id": request_id,
+        }
+        try:
+            self._db.table("recommendation_feedback").upsert(
+                row,
+                on_conflict="recommendation_id",
+                ignore_duplicates=True,
+            ).execute()
+        except TypeError:
+            try:
+                self._db.table("recommendation_feedback").insert(row).execute()
+            except Exception as exc:
+                if not self._is_unique_violation(exc):
+                    raise
+        except Exception as exc:
+            if not self._is_unique_violation(exc):
+                raise
+
+        self._sync_recommendation_stats(
+            recommendation_type=recommendation_type,
+            platform=platform,
+            request_id=request_id,
+        )
+
+    def fetch_recommendation_feedback_record(self, recommendation_id: str) -> dict[str, Any] | None:
+        response = (
+            self._db.table("recommendation_feedback")
+            .select("recommendation_id, recommendation_type, platform, accepted, feedback_at")
+            .eq("recommendation_id", recommendation_id)
+            .eq("agent_id", self.settings.agent_id)
+            .limit(1)
+            .execute()
+        )
+        if not response.data:
+            return None
+        return response.data[0]
+
+    def record_recommendation_feedback(
+        self,
+        *,
+        recommendation_id: str,
+        accepted: bool,
+        request_id: str | None,
+    ) -> bool:
+        existing = self.fetch_recommendation_feedback_record(recommendation_id)
+        if existing is None:
+            return False
+
+        row = {
+            "recommendation_id": recommendation_id,
+            "agent_id": self.settings.agent_id,
+            "accepted": accepted,
+            "feedback_at": self.current_timestamp().isoformat(),
+            "feedback_request_id": request_id,
+        }
+        self._db.table("recommendation_feedback").upsert(
+            row,
+            on_conflict="recommendation_id",
+        ).execute()
+
+        self._sync_recommendation_stats(
+            recommendation_type=existing["recommendation_type"],
+            platform=existing["platform"],
+            request_id=request_id,
+        )
+        return True
+
+    def _sync_recommendation_stats(
+        self,
+        *,
+        recommendation_type: str,
+        platform: str,
+        request_id: str | None,
+    ) -> None:
+        base_query = (
+            self._db.table("recommendation_feedback")
+            .eq("agent_id", self.settings.agent_id)
+            .eq("recommendation_type", recommendation_type)
+            .eq("platform", platform)
+        )
+
+        shown = base_query.select("recommendation_id", count="exact", head=True).execute().count or 0
+        accepted = (
+            self._db.table("recommendation_feedback")
+            .select("recommendation_id", count="exact", head=True)
+            .eq("agent_id", self.settings.agent_id)
+            .eq("recommendation_type", recommendation_type)
+            .eq("platform", platform)
+            .eq("accepted", True)
+            .execute()
+            .count
+            or 0
+        )
+        rejected = (
+            self._db.table("recommendation_feedback")
+            .select("recommendation_id", count="exact", head=True)
+            .eq("agent_id", self.settings.agent_id)
+            .eq("recommendation_type", recommendation_type)
+            .eq("platform", platform)
+            .eq("accepted", False)
+            .execute()
+            .count
+            or 0
+        )
+
+        acceptance_rate = round((accepted / shown), 4) if shown else 0.0
+        row = {
+            "agent_id": self.settings.agent_id,
+            "recommendation_type": recommendation_type,
+            "platform": platform,
+            "total_shown": shown,
+            "total_accepted": accepted,
+            "total_rejected": rejected,
+            "acceptance_rate": acceptance_rate,
+            "last_request_id": request_id,
+            "updated_at": self.current_timestamp().isoformat(),
+        }
+        try:
+            self._db.table("recommendation_stats").upsert(
+                row,
+                on_conflict="agent_id,recommendation_type,platform",
+            ).execute()
+        except Exception as exc:
+            logger.warning(
+                "recommendation_stats_sync_failed request_id=%s type=%s platform=%s error=%s",
+                request_id,
+                recommendation_type,
+                platform,
+                exc,
+            )

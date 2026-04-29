@@ -191,6 +191,23 @@ class RecommendationResponse(BaseModel):
     similar_campaigns: list[SemanticSearchResult] = Field(default_factory=list)
 
 
+class RecommendationShownRequest(BaseModel):
+    recommendation_id: str = Field(min_length=1)
+    campaign_id: str = Field(min_length=1)
+    recommendation_type: str = Field(min_length=1)
+    platform: str = Field(min_length=1)
+
+
+class RecommendationFeedbackRequest(BaseModel):
+    recommendation_id: str = Field(min_length=1)
+    accepted: bool
+
+
+class FeedbackActionResponse(BaseModel):
+    status: str
+    recommendation_id: str
+
+
 class AgentChatRequest(BaseModel):
     message: str = Field(min_length=1)
     context: dict[str, Any] = Field(default_factory=dict)

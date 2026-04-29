@@ -10,9 +10,12 @@ from app.models.schemas import (
     AgentChatResponse,
     AnalyzeCampaignResponse,
     CampaignPerformanceInput,
+    FeedbackActionResponse,
     InsightRecord,
     PatternRecord,
     RecommendationResponse,
+    RecommendationFeedbackRequest,
+    RecommendationShownRequest,
 )
 from app.services.analyzer import ReflectionLearningEngine
 
@@ -109,6 +112,33 @@ def get_recommendations(
         include_similar_campaigns=include_similar_campaigns,
     )
     return clean_text(result)
+
+
+@router.post(
+    "/shown",
+    response_model=FeedbackActionResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def mark_recommendation_shown(
+    payload: RecommendationShownRequest,
+    engine: ReflectionLearningEngine = Depends(get_engine),
+) -> FeedbackActionResponse:
+    return engine.mark_recommendation_shown(payload, request_id=str(uuid4()))
+
+
+@router.post(
+    "/feedback",
+    response_model=FeedbackActionResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def submit_recommendation_feedback(
+    payload: RecommendationFeedbackRequest,
+    engine: ReflectionLearningEngine = Depends(get_engine),
+) -> FeedbackActionResponse:
+    try:
+        return engine.submit_recommendation_feedback(payload, request_id=str(uuid4()))
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
 
 @router.get("/health")
