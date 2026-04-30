@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from app.models.schemas import ComparisonReport, InsightExtractionOutput, PatternReport, ReflectionEvaluation
 
@@ -13,7 +12,7 @@ class ReflectionWrapper:
         comparison: ComparisonReport,
         pattern_report: PatternReport,
         insights: InsightExtractionOutput,
-        recommendations: list[dict[str, Any]] | None = None,
+        recommendations: list[str] | None = None,
     ) -> ReflectionEvaluation:
         score = 0.0
         reasons: list[str] = []
@@ -61,8 +60,16 @@ class ReflectionWrapper:
         comparison: ComparisonReport,
         pattern_report: PatternReport,
         insights: InsightExtractionOutput,
-        recommendations: list[dict[str, Any]] | None = None,
+        recommendations: list[str] | None = None,
+        *,
+        force_fallback: bool = False,
     ) -> ReflectionEvaluation:
+        if force_fallback:
+            return ReflectionEvaluation(
+                evaluation_score=0.5,
+                reason="evaluation unavailable",
+                scoring_version=1,
+            )
         try:
             return self.evaluate(comparison, pattern_report, insights, recommendations=recommendations)
         except Exception:

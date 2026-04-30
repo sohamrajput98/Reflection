@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import logging
+from threading import Lock
 from typing import Any
 
 from supabase import Client
@@ -24,6 +25,7 @@ class SupabaseRepository:
     def __init__(self, settings: Settings, supabase: Client) -> None:
         self.settings = settings
         self._db = supabase
+        self._feedback_lock = Lock()
 
     def _storage_campaign_id(self, campaign_id: str) -> str:
         return f"{self.settings.agent_id}::{campaign_id}"
@@ -393,27 +395,28 @@ class SupabaseRepository:
             "shown_at": self.current_timestamp().isoformat(),
             "request_id": request_id,
         }
-        try:
-            self._db.table("recommendation_feedback").upsert(
-                row,
-                on_conflict="recommendation_id",
-                ignore_duplicates=True,
-            ).execute()
-        except TypeError:
+        with self._feedback_lock:
             try:
-                self._db.table("recommendation_feedback").insert(row).execute()
+                self._db.table("recommendation_feedback").upsert(
+                    row,
+                    on_conflict="recommendation_id",
+                    ignore_duplicates=True,
+                ).execute()
+            except TypeError:
+                try:
+                    self._db.table("recommendation_feedback").insert(row).execute()
+                except Exception as exc:
+                    if not self._is_unique_violation(exc):
+                        raise
             except Exception as exc:
                 if not self._is_unique_violation(exc):
                     raise
-        except Exception as exc:
-            if not self._is_unique_violation(exc):
-                raise
 
-        self._sync_recommendation_stats(
-            recommendation_type=recommendation_type,
-            platform=platform,
-            request_id=request_id,
-        )
+            self._sync_recommendation_stats(
+                recommendation_type=recommendation_type,
+                platform=platform,
+                request_id=request_id,
+            )
 
     def fetch_recommendation_feedback_record(self, recommendation_id: str) -> dict[str, Any] | None:
         response = (
@@ -439,23 +442,24 @@ class SupabaseRepository:
         if existing is None:
             return False
 
-        row = {
-            "recommendation_id": recommendation_id,
-            "agent_id": self.settings.agent_id,
-            "accepted": accepted,
-            "feedback_at": self.current_timestamp().isoformat(),
-            "feedback_request_id": request_id,
-        }
-        self._db.table("recommendation_feedback").upsert(
-            row,
-            on_conflict="recommendation_id",
-        ).execute()
+        with self._feedback_lock:
+            row = {
+                "recommendation_id": recommendation_id,
+                "agent_id": self.settings.agent_id,
+                "accepted": accepted,
+                "feedback_at": self.current_timestamp().isoformat(),
+                "feedback_request_id": request_id,
+            }
+            self._db.table("recommendation_feedback").upsert(
+                row,
+                on_conflict="recommendation_id",
+            ).execute()
 
-        self._sync_recommendation_stats(
-            recommendation_type=existing["recommendation_type"],
-            platform=existing["platform"],
-            request_id=request_id,
-        )
+            self._sync_recommendation_stats(
+                recommendation_type=existing["recommendation_type"],
+                platform=existing["platform"],
+                request_id=request_id,
+            )
         return True
 
     def _sync_recommendation_stats(

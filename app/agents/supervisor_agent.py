@@ -66,6 +66,7 @@ class SupervisorAgent:
             validated_recommendations,
             vector_saved,
             weights,
+            reflection_fallback_required,
         ) = asyncio.run(
             self._run_pipeline(
                 payload,
@@ -79,6 +80,7 @@ class SupervisorAgent:
             pattern_report,
             insights,
             validated_recommendations,
+            force_fallback=reflection_fallback_required,
             request_id=request_id,
         )
         if request_id:
@@ -117,6 +119,8 @@ class SupervisorAgent:
                 "pattern_agent": lambda: self.pattern_agent.detect(payload),
             }
         )
+        analysis_failed = initial_results["analysis_agent"].status != "success"
+        pattern_failed = initial_results["pattern_agent"].status != "success"
         comparison = self._validated_result_or_default(
             initial_results,
             "analysis_agent",
@@ -140,6 +144,7 @@ class SupervisorAgent:
                 ),
             }
         )
+        insight_failed = insight_results["insight_agent"].status != "success"
         raw_insight_result = self._validated_result_or_default(
             insight_results,
             "insight_agent",
@@ -157,6 +162,7 @@ class SupervisorAgent:
             agent_name="insight_agent",
             request_id=request_id,
         )
+        reflection_fallback_required = analysis_failed and pattern_failed and insight_failed
 
         vector_saved = False
         weights = WeightSnapshot.model_validate(self.feedback_engine.get_current_snapshot())
@@ -180,6 +186,7 @@ class SupervisorAgent:
             validated_recommendations,
             vector_saved,
             weights,
+            reflection_fallback_required,
         )
 
     def _validated_result_or_default(
@@ -241,7 +248,7 @@ class SupervisorAgent:
         *,
         agent_name: str,
         request_id: str | None,
-    ) -> list[dict[str, Any]]:
+    ) -> list[str]:
         _, _, insights = insight_result
         return validate_recommendation_output(
             list(insights.recommendations),
@@ -251,13 +258,12 @@ class SupervisorAgent:
 
     def _apply_recommendation_caps(
         self,
-        recommendations: list[dict[str, Any]],
+        recommendations: list[str],
         *,
         agent_name: str,
         request_id: str | None,
-    ) -> list[dict[str, Any]]:
-        capped = recommendations[:20]
-        capped = capped[:100]
+    ) -> list[str]:
+        capped = recommendations[: min(20, 100)]
         if len(capped) != len(recommendations):
             logger.info(
                 "recommendation_caps_applied request_id=%s agent=%s original_count=%s capped_count=%s",
@@ -325,8 +331,9 @@ class SupervisorAgent:
         comparison: ComparisonReport,
         pattern_report: PatternReport,
         insights: InsightExtractionOutput,
-        recommendations: list[dict[str, Any]],
+        recommendations: list[str],
         *,
+        force_fallback: bool,
         request_id: str | None,
     ) -> ReflectionEvaluation:
         reflection = self.reflection_wrapper.safe_evaluate(
@@ -334,6 +341,7 @@ class SupervisorAgent:
             pattern_report,
             insights,
             recommendations=recommendations,
+            force_fallback=force_fallback,
         )
         logger.info(
             "reflection_evaluated request_id=%s evaluation_score=%s scoring_version=%s validated_recommendations=%s",

@@ -22,6 +22,12 @@ class FeedbackLoopEngine:
     def __init__(self, settings: Settings, repository: SupabaseRepository) -> None:
         self.settings = settings
         self.repository = repository
+        self._snapshot_cache = WeightSnapshot(
+            generated_at=datetime.now(timezone.utc),
+            scoring_weights=dict(DEFAULT_SCORING_WEIGHTS),
+            signal_weights={},
+            updated_signals=[],
+        )
         self._ensure_weights_file()
 
     def update_system_learnings(
@@ -108,17 +114,18 @@ class FeedbackLoopEngine:
 
         if self.settings.enable_local_output:
             write_json(self.settings.weights_path, snapshot)
+        self._snapshot_cache = snapshot
         return snapshot
 
     def get_current_snapshot(self) -> WeightSnapshot:
+        if self._snapshot_cache.signal_weights or self._snapshot_cache.updated_signals:
+            return self._snapshot_cache
+
         if not self.settings.enable_local_output:
-            signal_weights = {
-                key: signal.weight for key, signal in sorted(self.repository.fetch_signal_weights().items())
-            }
             return WeightSnapshot(
                 generated_at=datetime.now(timezone.utc),
                 scoring_weights=dict(DEFAULT_SCORING_WEIGHTS),
-                signal_weights=signal_weights,
+                signal_weights={},
                 updated_signals=[],
             )
 
@@ -126,7 +133,8 @@ class FeedbackLoopEngine:
         if snapshot is None:
             self._ensure_weights_file()
             snapshot = read_json(self.settings.weights_path, {})
-        return WeightSnapshot.model_validate(snapshot)
+        self._snapshot_cache = WeightSnapshot.model_validate(snapshot)
+        return self._snapshot_cache
 
     def _ensure_weights_file(self) -> None:
         if not self.settings.enable_local_output or self.settings.weights_path.exists():
