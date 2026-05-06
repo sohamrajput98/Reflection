@@ -8,6 +8,9 @@ from app.core.bootstrap import get_engine, get_settings
 from app.models.schemas import (
     AgentChatRequest,
     AgentChatResponse,
+    AgentOutputIngestionRequest,
+    AgentOutputListResponse,
+    AgentOutputValidationResponse,
     AnalyzeCampaignResponse,
     CampaignPerformanceInput,
     FeedbackActionResponse,
@@ -16,6 +19,8 @@ from app.models.schemas import (
     RecommendationResponse,
     RecommendationFeedbackRequest,
     RecommendationShownRequest,
+    ReflectionTestRequest,
+    ReflectionTestResponse,
 )
 from app.services.analyzer import ReflectionLearningEngine
 
@@ -139,6 +144,45 @@ def submit_recommendation_feedback(
         return engine.submit_recommendation_feedback(payload, request_id=str(uuid4()))
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.post(
+    "/debug/agent-outputs/ingest",
+    response_model=AgentOutputValidationResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def ingest_agent_outputs(
+    payload: AgentOutputIngestionRequest,
+    engine: ReflectionLearningEngine = Depends(get_engine),
+) -> AgentOutputValidationResponse:
+    return engine.ingest_agent_outputs(payload, request_id=str(uuid4()))
+
+
+@router.get(
+    "/debug/agent-outputs",
+    response_model=AgentOutputListResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def get_recent_agent_outputs(
+    limit: int = Query(default=20, ge=1, le=50),
+    engine: ReflectionLearningEngine = Depends(get_engine),
+) -> AgentOutputListResponse:
+    return engine.get_recent_agent_outputs(limit)
+
+
+@router.post(
+    "/debug/agent-outputs/run-reflection",
+    response_model=ReflectionTestResponse,
+    dependencies=[Depends(require_api_key)],
+)
+def run_agent_output_reflection(
+    payload: ReflectionTestRequest,
+    engine: ReflectionLearningEngine = Depends(get_engine),
+) -> ReflectionTestResponse:
+    return engine.run_agent_ingestion_reflection_test(
+        agent_name=payload.agent_name,
+        request_id=str(uuid4()),
+    )
 
 
 @router.get("/health")

@@ -11,6 +11,7 @@ from app.agents.pattern_agent import PatternAgent
 from app.agents.supervisor_agent import SupervisorAgent
 from app.core.config import Settings
 from app.orchestration.reflection_wrapper import ReflectionWrapper
+from app.services.agent_ingestion import AgentIngestionService
 from app.services.analyzer import ReflectionLearningEngine
 from app.services.comparator import PerformanceComparator
 from app.services.feedback import FeedbackLoopEngine
@@ -47,6 +48,10 @@ def get_engine() -> ReflectionLearningEngine:
     insight_service = InsightService(settings)
     feedback_engine = FeedbackLoopEngine(settings, repository)
     reflection_wrapper = ReflectionWrapper()
+    agent_ingestion_service = AgentIngestionService(
+        repository=repository,
+        reflection_wrapper=reflection_wrapper,
+    )
 
     analysis_agent = AnalysisAgent(comparator=comparator)
     pattern_agent = PatternAgent(repository=repository, pattern_detector=pattern_detector)
@@ -83,4 +88,5 @@ def get_engine() -> ReflectionLearningEngine:
         scoring_service=scoring_service,
         supabase=supabase,
         supervisor_agent=supervisor_agent,
+        agent_ingestion_service=agent_ingestion_service,
     )

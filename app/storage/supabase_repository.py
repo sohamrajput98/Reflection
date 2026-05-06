@@ -9,6 +9,7 @@ from supabase import Client
 
 from app.core.config import Settings
 from app.models.schemas import (
+    AgentOutputRecord,
     CampaignPerformanceInput,
     ComparisonReport,
     FeedbackSignal,
@@ -43,6 +44,86 @@ class SupabaseRepository:
     def _is_unique_violation(self, exc: Exception) -> bool:
         message = str(exc).lower()
         return "23505" in message or "duplicate key" in message or "unique constraint" in message
+
+    def save_agent_outputs(self, rows: list[dict[str, Any]]) -> list[AgentOutputRecord]:
+        if not rows:
+            return []
+        try:
+            response = self._db.table("agent_outputs").upsert(
+                rows,
+                on_conflict="agent_name,recommendation_id",
+            ).execute()
+        except Exception as exc:
+            if self._supports_conflict_target(exc):
+                raise
+            response = self._db.table("agent_outputs").insert(rows).execute()
+        return [
+            AgentOutputRecord(
+                id=row["id"],
+                agent_name=row["agent_name"],
+                agent_id=row.get("agent_id"),
+                recommendation_id=row["recommendation_id"],
+                campaign_id=row.get("campaign_id"),
+                recommendation_type=row["recommendation_type"],
+                platform=row["platform"],
+                action=row["action"],
+                confidence=row["confidence"],
+                priority=row["priority"],
+                raw_payload=row.get("raw_payload") or {},
+                created_at=datetime.fromisoformat(row["created_at"]),
+            )
+            for row in response.data or []
+        ]
+
+    def fetch_recent_agent_outputs(self, limit: int = 20) -> list[AgentOutputRecord]:
+        response = (
+            self._db.table("agent_outputs")
+            .select(
+                "id, agent_name, agent_id, recommendation_id, campaign_id, recommendation_type, "
+                "platform, action, confidence, priority, raw_payload, created_at"
+            )
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return [
+            AgentOutputRecord(
+                id=row["id"],
+                agent_name=row["agent_name"],
+                agent_id=row.get("agent_id"),
+                recommendation_id=row["recommendation_id"],
+                campaign_id=row.get("campaign_id"),
+                recommendation_type=row["recommendation_type"],
+                platform=row["platform"],
+                action=row["action"],
+                confidence=row["confidence"],
+                priority=row["priority"],
+                raw_payload=row.get("raw_payload") or {},
+                created_at=datetime.fromisoformat(row["created_at"]),
+            )
+            for row in response.data or []
+        ]
+
+    def log_ingestion(
+        self,
+        *,
+        request_id: str,
+        status: str,
+        agent_name: str | None = None,
+        recommendation_id: str | None = None,
+        latency_ms: int | None = None,
+        error_message: str | None = None,
+    ) -> None:
+        self._db.table("ingestion_logs").insert(
+            {
+                "request_id": request_id,
+                "status": status,
+                "agent_name": agent_name,
+                "recommendation_id": recommendation_id,
+                "latency_ms": latency_ms,
+                "error_message": error_message,
+            }
+        ).execute()
 
     def save_campaign(
         self,

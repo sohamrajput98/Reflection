@@ -208,6 +208,61 @@ class FeedbackActionResponse(BaseModel):
     recommendation_id: str
 
 
+class AgentRecommendationInput(BaseModel):
+    source_recommendation_key: str = Field(min_length=1)
+    recommendation_type: str = Field(min_length=1)
+    platform: str = Field(min_length=1)
+    action: str = Field(min_length=1)
+    confidence: float
+    priority: str = Field(min_length=1)
+    agent_specific: dict[str, Any] = Field(default_factory=dict)
+
+
+class AgentOutputIngestionRequest(BaseModel):
+    agent_name: str = Field(min_length=1)
+    campaign_id: str | None = None
+    recommendations: list[AgentRecommendationInput] = Field(default_factory=list)
+
+
+class AgentOutputRecord(BaseModel):
+    id: str
+    agent_name: str
+    agent_id: str | None = None
+    recommendation_id: str
+    campaign_id: str | None = None
+    recommendation_type: str
+    platform: str
+    action: str
+    confidence: float
+    priority: str
+    raw_payload: dict[str, Any] = Field(default_factory=dict)
+    created_at: datetime
+
+
+class AgentOutputValidationResponse(BaseModel):
+    request_id: str
+    status: str
+    accepted_count: int
+    dropped_count: int
+    validation_errors: list[dict[str, Any]] = Field(default_factory=list)
+    stored_outputs: list[AgentOutputRecord] = Field(default_factory=list)
+
+
+class AgentOutputListResponse(BaseModel):
+    outputs: list[AgentOutputRecord] = Field(default_factory=list)
+
+
+class ReflectionTestResponse(BaseModel):
+    request_id: str
+    validation_status: str
+    reflection_score: float
+    dropped_recommendations: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class ReflectionTestRequest(BaseModel):
+    agent_name: str = Field(min_length=1)
+
+
 class AgentChatRequest(BaseModel):
     message: str = Field(min_length=1)
     context: dict[str, Any] = Field(default_factory=dict)

@@ -9,13 +9,18 @@ from app.agents.supervisor_agent import SupervisorAgent
 from app.core.config import Settings
 from app.models.schemas import (
     AgentChatResponse,
+    AgentOutputIngestionRequest,
+    AgentOutputListResponse,
+    AgentOutputValidationResponse,
     AnalyzeCampaignResponse,
     CampaignPerformanceInput,
     FeedbackActionResponse,
+    ReflectionTestResponse,
     RecommendationResponse,
     RecommendationFeedbackRequest,
     RecommendationShownRequest,
 )
+from app.services.agent_ingestion import AgentIngestionService
 from app.services.comparator import PerformanceComparator
 from app.services.feedback import FeedbackLoopEngine
 from app.services.insight_service import InsightService
@@ -37,6 +42,7 @@ class ReflectionLearningEngine:
     scoring_service: ScoringService
     supabase: Any
     supervisor_agent: SupervisorAgent
+    agent_ingestion_service: AgentIngestionService
 
     def analyze_campaign(
         self,
@@ -123,3 +129,25 @@ class ReflectionLearningEngine:
         if not recorded:
             raise ValueError("recommendation must be shown before feedback")
         return FeedbackActionResponse(status="feedback_recorded", recommendation_id=payload.recommendation_id)
+
+    def ingest_agent_outputs(
+        self,
+        payload: AgentOutputIngestionRequest,
+        *,
+        request_id: str,
+    ) -> AgentOutputValidationResponse:
+        return self.agent_ingestion_service.ingest(payload, request_id=request_id)
+
+    def get_recent_agent_outputs(self, limit: int = 20) -> AgentOutputListResponse:
+        return self.agent_ingestion_service.list_recent_outputs(limit)
+
+    def run_agent_ingestion_reflection_test(
+        self,
+        *,
+        agent_name: str,
+        request_id: str,
+    ) -> ReflectionTestResponse:
+        return self.agent_ingestion_service.run_reflection_test(
+            agent_name=agent_name,
+            request_id=request_id,
+        )
