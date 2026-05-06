@@ -88,3 +88,15 @@ export function markRecommendationShown(payload, options = {}) {
 export function submitRecommendationFeedback(payload, options = {}) {
   return request('/feedback', { method: 'POST', body: JSON.stringify(payload) }, options.debug === true)
 }
+
+export function ingestAgentOutputs(payload, options = {}) {
+  return request('/debug/agent-outputs/ingest', { method: 'POST', body: JSON.stringify(payload) }, options.debug === true)
+}
+
+export function getRecentAgentOutputs(limit = 20, options = {}) {
+  return request(`/debug/agent-outputs?limit=${limit}`, {}, options.debug === true)
+}
+
+export function runAgentOutputReflection(payload, options = {}) {
+  return request('/debug/agent-outputs/run-reflection', { method: 'POST', body: JSON.stringify(payload) }, options.debug === true)
+}

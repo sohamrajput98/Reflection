@@ -7,7 +7,14 @@ import { ErrorBox } from '../components/ui'
 import AgentChatPanel from '../components/AgentChatPanel'
 import StepLoader from '../components/StepLoader'
 import { clearViewState, loadViewState, persistViewState } from '../lib/viewState'
-import { analyzeCampaign, markRecommendationShown, submitRecommendationFeedback } from '../api/api'
+import {
+  analyzeCampaign,
+  getRecentAgentOutputs,
+  ingestAgentOutputs,
+  markRecommendationShown,
+  runAgentOutputReflection,
+  submitRecommendationFeedback,
+} from '../api/api'
 
 function Placeholder() {
   return (
@@ -116,51 +123,75 @@ function DebugPre({ value }) {
   )
 }
 
-function DebugSection({ debugState, onMarkShown, onFeedback }) {
-  const { trace, database, pipelineSummary } = debugState
+function DebugSection({
+  debugState,
+  debugTab,
+  onDebugTabChange,
+  ingestionJson,
+  onIngestionJsonChange,
+  onValidateIngestion,
+  onLoadStoredOutputs,
+  onRunPipelineTest,
+}) {
+  const { ingestion } = debugState
 
   return (
     <section className="workspace-main-card" style={{ padding: 16, marginTop: 16 }}>
       <div className="workspace-section-label" style={{ marginBottom: 12 }}>Debug Mode</div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+        {[
+          ['input', 'Agent Input Tester'],
+          ['stored', 'Stored Data Viewer'],
+          ['runner', 'Pipeline Test Runner'],
+        ].map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            className={debugTab === key ? 'workspace-right-tab workspace-right-tab-active' : 'workspace-right-tab'}
+            onClick={() => onDebugTabChange(key)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <DebugBlock title="API TRACE">
-          <DebugPre value={{
-            request_id: trace.request_id,
-            request_json: trace.request_json,
-            response_json: trace.response_json,
-            latency_ms: trace.latency_ms,
-            status: trace.status,
-          }} />
-        </DebugBlock>
+        {debugTab === 'input' && (
+          <DebugBlock title="Agent Input Tester">
+            <textarea
+              value={ingestionJson}
+              onChange={e => onIngestionJsonChange(e.target.value)}
+              className="input"
+              rows={12}
+              style={{ resize: 'vertical', marginBottom: 10 }}
+            />
+            <button type="button" className="btn-ghost" onClick={onValidateIngestion}>Validate</button>
+            <div style={{ marginTop: 10 }}>
+              <DebugPre value={ingestion.validation_response} />
+            </div>
+          </DebugBlock>
+        )}
 
-        <DebugBlock title="AGENT OUTPUT HEALTH">
-          <DebugPre value={trace.agent_health} />
-        </DebugBlock>
+        {debugTab === 'stored' && (
+          <DebugBlock title="Stored Data Viewer">
+            <button type="button" className="btn-ghost" onClick={onLoadStoredOutputs}>Load Last 20</button>
+            <div style={{ marginTop: 10 }}>
+              <DebugPre value={ingestion.stored_outputs} />
+            </div>
+          </DebugBlock>
+        )}
 
-        <DebugBlock title="RECOMMENDATION CHECK">
-          <DebugPre value={{
-            raw_recommendations: trace.raw_recommendations,
-            validated_recommendations: trace.validated_recommendations,
-            dropped_recommendations: trace.dropped_recommendations,
-          }} />
-        </DebugBlock>
-
-        <DebugBlock title="DATABASE STATUS">
-          <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
-            <button type="button" className="btn-ghost" onClick={onMarkShown}>Trigger /shown</button>
-            <button type="button" className="btn-ghost" onClick={() => onFeedback(true)}>Trigger /feedback accept</button>
-            <button type="button" className="btn-ghost" onClick={() => onFeedback(false)}>Trigger /feedback reject</button>
-          </div>
-          <DebugPre value={{
-            shown_response: database.shown_response,
-            feedback_response: database.feedback_response,
-            stats_update_snapshot: database.stats_update_snapshot,
-          }} />
-        </DebugBlock>
-
-        <DebugBlock title="PIPELINE SUMMARY">
-          <DebugPre value={pipelineSummary} />
-        </DebugBlock>
+        {debugTab === 'runner' && (
+          <DebugBlock title="Pipeline Test Runner">
+            <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap' }}>
+              {['analysis_agent', 'pattern_agent', 'insight_agent', 'memory_agent'].map(name => (
+                <button key={name} type="button" className="btn-ghost" onClick={() => onRunPipelineTest(name)}>
+                  {name}
+                </button>
+              ))}
+            </div>
+            <DebugPre value={ingestion.runner_response} />
+          </DebugBlock>
+        )}
       </div>
     </section>
   )
@@ -175,6 +206,27 @@ export default function AnalyzePage({ debugMode = false }) {
   const [rightTab, setRightTab] = useState(initialViewState.rightTab ?? 'chat')
   const [activeAgent, setActiveAgent] = useState(initialViewState.activeAgent ?? 'supervisor')
   const [formDraft, setFormDraft] = useState(null)
+  const [debugTab, setDebugTab] = useState('input')
+  const [ingestionJson, setIngestionJson] = useState(
+    JSON.stringify(
+      {
+        agent_outputs: [
+          {
+            agent_name: 'insight_agent',
+            recommendation_id: 'debug-rec-1',
+            recommendation_type: 'recommendation',
+            platform: 'meta',
+            action: 'Increase budget for high-performing audience segment.',
+            confidence: 0.82,
+            priority: 'high',
+            raw_payload: {},
+          },
+        ],
+      },
+      null,
+      2,
+    ),
+  )
   const [debugState, setDebugState] = useState({
     trace: {
       request_id: null,
@@ -191,6 +243,11 @@ export default function AnalyzePage({ debugMode = false }) {
       shown_response: null,
       feedback_response: null,
       stats_update_snapshot: null,
+    },
+    ingestion: {
+      validation_response: null,
+      stored_outputs: null,
+      runner_response: null,
     },
     pipelineSummary: {
       caps_applied: { per_agent: 20, total: 100 },
@@ -237,6 +294,11 @@ export default function AnalyzePage({ debugMode = false }) {
             shown_response: null,
             feedback_response: null,
             stats_update_snapshot: null,
+          },
+          ingestion: {
+            validation_response: null,
+            stored_outputs: null,
+            runner_response: null,
           },
           pipelineSummary: {
             caps_applied: {
@@ -378,6 +440,38 @@ export default function AnalyzePage({ debugMode = false }) {
     }
   }
 
+  async function handleValidateIngestion() {
+    try {
+      const payload = JSON.parse(ingestionJson)
+      const response = await ingestAgentOutputs(payload, { debug: true })
+      setDebugState(prev => ({
+        ...prev,
+        ingestion: { ...prev.ingestion, validation_response: response },
+      }))
+    } catch (e) {
+      setDebugState(prev => ({
+        ...prev,
+        ingestion: { ...prev.ingestion, validation_response: { error: e.message || 'Invalid JSON' } },
+      }))
+    }
+  }
+
+  async function handleLoadStoredOutputs() {
+    const response = await getRecentAgentOutputs(20, { debug: true })
+    setDebugState(prev => ({
+      ...prev,
+      ingestion: { ...prev.ingestion, stored_outputs: response },
+    }))
+  }
+
+  async function handleRunPipelineTest(agentName) {
+    const response = await runAgentOutputReflection({ agent_name: agentName }, { debug: true })
+    setDebugState(prev => ({
+      ...prev,
+      ingestion: { ...prev.ingestion, runner_response: response },
+    }))
+  }
+
   function renderAgentResultView() {
     if (loading) return <StepLoader />
     if (!result && !error) return <Placeholder />
@@ -509,8 +603,13 @@ export default function AnalyzePage({ debugMode = false }) {
           {debugMode && (
             <DebugSection
               debugState={debugState}
-              onMarkShown={handleDebugShown}
-              onFeedback={handleDebugFeedback}
+              debugTab={debugTab}
+              onDebugTabChange={setDebugTab}
+              ingestionJson={ingestionJson}
+              onIngestionJsonChange={setIngestionJson}
+              onValidateIngestion={handleValidateIngestion}
+              onLoadStoredOutputs={handleLoadStoredOutputs}
+              onRunPipelineTest={handleRunPipelineTest}
             />
           )}
         </div>
